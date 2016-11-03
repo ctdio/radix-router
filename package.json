@@ -1,0 +1,16 @@
+{
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^3.1.2"
+  },
+  "name": "radix-router",
+  "version": "0.0.1",
+  "description": "Radix tree based router",
+  "main": "index.js",
+  "repository": {
+    "url": "https://github.com/charlieduong94/radix-router",
+    "type": "git"
+  },
+  "author": "Charlie Duong <charlieduong94@gmail.com>",
+  "license": "MIT"
+}
