@@ -1,4 +1,6 @@
-let {expect} = require('chai');
+const {expect} = require('chai');
+const util = require('util');
+
 let RadixTree = require('../index');
 
 describe('Radix Tree', () => {
@@ -36,6 +38,7 @@ describe('Radix Tree', () => {
         expect(oo_node.children['oool']).to.not.equal(undefined);
         expect(h2_node.children['rome']).to.not.equal(undefined);
         expect(h2_node.children['oot']).to.not.equal(undefined);
+        
     });
 
     it('should be able to perform a lookup properly', () => {
@@ -80,7 +83,15 @@ describe('Radix Tree', () => {
         tree.insert('coooool', 5);
         tree.insert('chrome', 6);
         tree.insert('choot', 7);
-        // TODO: complete
-        
+        tree.insert('chromium', 8);
+
+        let setA = tree.startsWith('h');
+        expect(setA.hasOwnProperty('hello')).to.equal(true);
+        expect(setA.hasOwnProperty('hi')).to.equal(true);
+        expect(setA.hasOwnProperty('helium')).to.equal(true);
+
+        let setB = tree.startsWith('chro');
+        expect(setB.hasOwnProperty('chrome')).to.equal(true);
+        expect(setB.hasOwnProperty('chromium')).to.equal(true);
     });
 });
