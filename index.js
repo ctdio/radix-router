@@ -2,21 +2,44 @@
  * JS Radix Router implementation 
  */
 
-function _getAllPrefixChildren(children, str) {
-    var nodes = {};
-    Object.keys(children).forEach(function(key) {
-        var i;
-        for (i = 0; i < str.length; i++) {
-            if (key[i] !== str[i]) {
-                break;
-            }
+const util = require('util');
+// node types
+var NORMAL_NODE = 0;
+var WILDCARD_NODE = 1;
+var PLACEHOLDER_NODE = 2;
+
+/**
+ * Returns all children that match the prefix
+ *
+ * @param {Node} - the node to check children for 
+ * @param {prefix} - the prefix to match
+ */
+function _getAllPrefixChildren(node, str) {
+    var nodes = [];
+    var children = node.children;
+    for (var i = 0; i < children.length; i++) {
+        // only need to check for first char
+        if (children[i].path[0] === str[0]) {
+            nodes.push(children[i]);
         }
-        // it's a prefix
-        if (i === str.length) {
-            nodes[key] = children[key]
-        }
-    });
+    }
     return nodes;
+}
+
+/**
+ * Returns the child matching the prefix
+ *
+ * @param {Node} - the node to check children for 
+ * @param {prefix} - the prefix to match
+ */
+function _getChildNode(node, prefix) {
+    var children = node.children;
+    for (var i = 0; i < children.length; i++) {
+        if (children[i].path === prefix) {
+            return children[i];
+        }
+    }
+    return null;
 }
 
 /**
@@ -26,18 +49,23 @@ function _getAllPrefixChildren(children, str) {
  * @param {string} str - the string used to find the largest prefix with
  */
 function _getLargestPrefix(children, str) {
-    var length = 0;
+    var index = 0;;
 
-    Object.keys(children).forEach(function(key) {
-        for (var i = 0; i < key.length; i++) {
-            if (str[i] !== key[i] || i > length) {
+    for (let i = 0; i < children.length; i++) {
+        var path = children[i].path;
+        var totalIterations = Math.min(str.length, path.length);
+        for (; index < totalIterations; index++) {
+            if (str[index] !== path[index]) {
                 break;
             }
-            length = i + 1;
         }
-    });
+        if (index > 0) {
+            break;
+        }
+    }
 
-    return str.substring(0, length);
+    // largest prefix
+    return str.slice(0, index);
 }
 
 /**
@@ -49,34 +77,59 @@ function _getLargestPrefix(children, str) {
  * @param {function} onPartialMatch - the handler for partial matches
  * @param {function} onNoMatch - the handler for when no match is found
  */
-function _traverse(node, str, onExactMatch, onPartialMatch, onNoMatch, data) {
-    var children = node.children;
-    var prefix = _getLargestPrefix(children, str);
+function _traverse(options) {
+    var node = options.node;
+    var str = options.str;
+    var onExactMatch = options.onExactMatch;
+    var onPartialMatch = options.onPartialMatch;
+    var onNoMatch = options.onNoMatch;
+    var onWildcard = options.onWildcard;
+    var onPlaceholder = options.onPlaceholder;
+    var data = options.data;
 
+
+    var children = node.children;
+
+    // check if a child is possibly a placeholder or a wildcard
+    // if wildcard is found, use it as a backup if no result is found
+    var wildcardNode;
+    for (var i = 0; i < children.length; i++) {
+        if (children[i].type === WILDCARD_NODE) {
+            wildcardNode = children[i];
+            break;
+        } else if (children[i].type === PLACEHOLDER_NODE) {
+            // TODO:
+        }
+    }
+
+    var prefix = _getLargestPrefix(children, str);
+    
     // no matches, return null
     if (prefix.length === 0) {
-        return onNoMatch(node, str, data); 
+        return onNoMatch(node, str, data) || wildcardNode;
     } 
 
-    // exact match was found
+    // exact match with input string was found
     if (prefix.length === str.length) {
-        return onExactMatch(node, prefix, str, data);
+        return onExactMatch(node, prefix, str, data) || wildcardNode;
     }
 
     // get child
-    var childNode = node.children[prefix];
+    var childNode = _getChildNode(node, prefix);
     // child exists, continue traversing
     if (childNode) {
-        return _traverse(childNode, 
-            str.substring(prefix.length), 
-            onExactMatch, 
-            onPartialMatch, 
-            onNoMatch,
-            data);
-    } 
+        options.node = childNode;
+        options.str = str.slice(prefix.length);
+        let result = _traverse(options);
+        if (!result && wildcardNode) {
+            return wildcardNode;
+        } else {
+            return result;
+        }
+    }
 
     // partial match was found
-    return onPartialMatch(node, prefix, str, data);
+    return onPartialMatch(node, prefix, str, data) || wildcardNode;
 }
 
 /**
@@ -91,9 +144,68 @@ function _traverseDepths(node, str, map) {
         map[str] = node.data;
     }
 
-    Object.keys(node.children).forEach(function(key) {
-        _traverseDepths(node.children[key], str + key, map);
+    node.children.forEach(function(child) {
+        _traverseDepths(child, str + child.path, map);
     });
+}
+
+function _createNode(path, data) {
+    let node;
+    if (path[0] === ':') {
+        node = new Node(path, data, PLACEHOLDER_NODE);
+    } else if(path === '**') {
+        node = new Node(path, data, WILDCARD_NODE);
+    } else {
+        // normal string to match
+        node = new Node(path, data);
+    }
+    return node;
+}
+
+function _buildNodeChain(str, data) {
+    let parentNode;
+    let currentNode;
+    let startingPoint = 0;
+    let sections = str.split('/');
+    // first section is a special case, if it has real content, create a node
+    // otherwise, create an empty node
+    if (sections[startingPoint].length > 0) {
+        parentNode = currentNode = _createNode(sections[startingPoint]);
+    } else {
+        parentNode = currentNode = new Node('');
+    }
+    startingPoint++;
+
+    for (var i = startingPoint; i < sections.length; i++) {
+        let path;
+        let parseRemaining = true;
+        let newNode;
+
+        // add slash to last node if the last section was empty
+        if (i > 0 && sections[i - 1].length === 0){
+            currentNode.path += '/';
+        } else if (sections[i].length === 0) {
+            newNode = new Node('/');
+            parseRemaining = false;
+        } else {
+            var node = new Node('/');
+            currentNode.children.push(node);
+            node.parent = currentNode;
+            currentNode = node;
+        }
+
+        if (parseRemaining) {
+            let path = sections[i];
+            newNode = _createNode(path);
+        }
+
+        currentNode.children.push(newNode);
+        newNode.parent = currentNode;
+        currentNode = newNode;
+    }
+    currentNode.data = data;
+
+    return parentNode;
 }
 
 /**
@@ -107,63 +219,75 @@ function _traverseDepths(node, str, map) {
  */
 function _splitNode(node, prefix, str, data) {
     var length = 0;
-    var closestMatch;
+    var originalNode;
+    var oldIndex;
 
-    var keys = Object.keys(node.children);
-    for (var i = 0; i < keys.length; i++) {
-        if (keys[i].startsWith(prefix)) {
-            closestMatch = keys[i];
+    var children = node.children;
+    for (var i = 0; i < children.length; i++) {
+        if (children[i].path.startsWith(prefix)) {
+            originalNode = children[i];
+            oldIndex = i;
             break;
         }
     }
 
     var newLink = str.substring(prefix.length);
-    var oldLink = closestMatch.substring(prefix.length);
+    var oldLink = originalNode.path.substring(prefix.length);
 
-    var originalNode = node.children[closestMatch];
-    var newNode = new Node(data);
-    var intermediateNode = new Node();
+    // set new path
+    originalNode.path = oldLink;
+    var newNode = _buildNodeChain(newLink, data);
+    var intermediateNode = new Node(prefix);
 
     originalNode.parent = intermediateNode;
     newNode.parent = intermediateNode;
     intermediateNode.parent = node;
 
-    intermediateNode.children[oldLink] = originalNode;
-    intermediateNode.children[newLink] = newNode;
+    intermediateNode.children.push(originalNode);
+    intermediateNode.children.push(newNode);
 
-    node.children[prefix] = intermediateNode;
+    node.children.push(intermediateNode);
 
-    delete node.children[closestMatch];
+    // remove old node the list of children
+    node.children.splice(oldIndex, 1);
     return newNode;
 }
 
 // handle exact matches
 var EXACT_MATCH_HANDLERS = {
     'insert': function(node, prefix, str, data) {
-        node.children[prefix].data = data;
+        var childNode = _getChildNode(node, prefix);
+        childNode.data = data;
         return node;
     },
     'delete': function(parentNode, prefix) {
-        var childNode = parentNode.children[prefix];
-        if (Object.keys(childNode.children).length ===  0) {
+        var childNode = _getChildNode(parentNode, prefix);
+        if (childNode.children.length ===  0) {
             // delete node from parent
-            delete parentNode.children[prefix];
+            for (var i = 0; i < parentNode.children.length; i++) {
+                if (parentNode.children[i].path === prefix) {
+                    break;
+                }
+            }
+            parentNode.children.splice(i, 1);
+            return 
         } else {
             delete childNode.data;
         }
         return childNode;
     },
     'lookup': function(node, prefix) {
-        var newNode = node.children[prefix];
-        return newNode;
+        var discoveredNode = _getChildNode(node, prefix);
+        return discoveredNode;
     },
     'startsWith': function(node, prefix, str) {
-        if (node.children[prefix]) {
-            return node.children[prefix];
+        var childNode = _getChildNode(node, prefix);
+        if (childNode) {
+            return childNode;
         }
-        return _getAllPrefixChildren(node.children, prefix);
+        return _getAllPrefixChildren(node, prefix);
     }
-}
+};
 
 // handle situations where there is a partial match
 var PARTIAL_MATCH_HANDLERS = {
@@ -178,14 +302,15 @@ var PARTIAL_MATCH_HANDLERS = {
         return null;
     },
     'startsWith': function(node, prefix) {
-        return _getAllPrefixChildren(node.children, prefix);
+        return _getAllPrefixChildren(node, prefix);
     }
-}
+};
 
 // handle situtations where there is no match
 var NO_MATCH_HANDLERS = {
     'insert': function(parentNode, str, data) {
-        var newNode = parentNode.children[str] = new Node(data);
+        var newNode = _buildNodeChain(str, data);
+        parentNode.children.push(newNode);
         newNode.parent = parentNode;
         return newNode;
     },
@@ -198,7 +323,37 @@ var NO_MATCH_HANDLERS = {
     'startsWith': function() {
         return null;
     }
-}
+};
+
+var WILDCARD_HANDLERS = {
+    'insert': function(parentNode, str, data) {
+        return 
+    },
+    'delete': function() {
+        return null;
+    },
+    'lookup': function(wildcardNode) {
+        return wildcardNode;
+    },
+    'startsWith': function() {
+        return null;
+    }
+};
+
+var PLACEHOLDER_HANDLERS = {
+    'insert': function(parentNode, str, data) {
+        return newNode;
+    },
+    'delete': function() {
+        return null;
+    },
+    'lookup': function() {
+        return null;
+    },
+    'startsWith': function() {
+        return null;
+    }
+};
 
 /**
  * Helper method for retrieving all needed action handlers
@@ -209,7 +364,9 @@ function _getHandler(action) {
     return {
         onExactMatch: EXACT_MATCH_HANDLERS[action],
         onPartialMatch: PARTIAL_MATCH_HANDLERS[action],
-        onNoMatch: NO_MATCH_HANDLERS[action]
+        onNoMatch: NO_MATCH_HANDLERS[action],
+        onWildcard: WILDCARD_HANDLERS[action],
+        onPlaceholder: PLACEHOLDER_HANDLERS[action]
     }
 }
 
@@ -230,21 +387,27 @@ function _validateInput(str) {
  */
 function _startTraversal(rootNode, action, input, data) {
     var handlers = _getHandler(action);
-    return _traverse(rootNode, 
-        input, 
-        handlers.onExactMatch, 
-        handlers.onPartialMatch, 
-        handlers.onNoMatch,
-        data);
+    return _traverse({
+        node: rootNode, 
+        str: input, 
+        onExactMatch: handlers.onExactMatch, 
+        onPartialMatch: handlers.onPartialMatch, 
+        onNoMatch: handlers.onNoMatch,
+        onWildcard: handlers.onWildcard,
+        onPlaceholder: handlers.onWildcard,
+        data:data
+    });
 }
 
 /**
  * Node of the Radix Tree
  * @constructor
  */
-function Node(data) {
+function Node(path, data, type) {
+    this.type = type || NORMAL_NODE;
+    this.path = path;
     this.parent = undefined;
-    this.children = {};
+    this.children = [];
     this.data = data;
 }
 
@@ -273,8 +436,10 @@ RadixRouter.prototype = {
         if (result instanceof Node) {
             _traverseDepths(result, prefix, map);
         } else {
-            Object.keys(result).forEach(function(key) {
-                _traverseDepths(result[key], prefix.substring(0, prefix.indexOf(key[0])) + key, map);
+            result.forEach(function(child) {
+                _traverseDepths(child, 
+                    prefix.substring(0, prefix.indexOf(child.path[0])) + child.path, 
+                    map);
             });
         }
 

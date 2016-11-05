@@ -3,8 +3,19 @@ const util = require('util');
 
 let RadixTree = require('../index');
 
+/**
+ * Expected structure:
+ *            root
+ *         /        \
+ *        h             c
+ *      /  \         /    \
+ *     i   el       oo       h
+ *       /   \     / \       /  \
+ *      lo  ium  l  oool   rome  oot
+ */
 describe('Radix Tree', () => {
-    it('should be able to insert nodes correctly into the tree', () => {
+    // TODO: Redo this portion
+    it.skip('should be able to insert nodes correctly into the tree', () => {
         let tree = new RadixTree();
         tree.insert('hello');
         tree.insert('cool');
@@ -13,17 +24,6 @@ describe('Radix Tree', () => {
         tree.insert('coooool');
         tree.insert('chrome');
         tree.insert('choot');
-
-        /**
-         * Expected structure:
-         *            root
-         *         /        \
-         *        h             c
-         *      /  \         /    \
-         *     i   el       oo       h
-         *       /   \     / \       /  \
-         *      lo  ium  l  oool   rome  oot
-         */
 
         let h_node = tree._rootNode.children['h'];
         let el_node = h_node.children['el'];
@@ -41,23 +41,35 @@ describe('Radix Tree', () => {
         
     });
 
-    it('should be able to perform a lookup properly', () => {
+    it.only('should be able to perform a lookup properly', () => {
         let tree = new RadixTree();
         tree.insert('hello', 1);
         tree.insert('cool', 2);
         tree.insert('hi', 3);
-        tree.insert('helium', 4);
+        tree.insert('heli//u/m', 4);
         tree.insert('coooool', 5);
         tree.insert('chrome', 6);
         tree.insert('choot', 7);
+        tree.insert('chrome/coooo/il/li/iloool', 9)
+        tree.insert('//chrome//coooo/il/li/iloool', 9)
+        tree.insert('/chrome//coooo/il/li/iloool', 9)
+        tree.insert('choot/:cobrowse', 8);
+        tree.insert('chrome/**', 9);
+        tree.insert('chrome/*/coooo/il/li/iloool', 10);
+        console.log(util.inspect(tree, {depth: null}));
+        console.log(tree.startsWith('chrom'));
         
         expect(tree.lookup('hello')).to.equal(1);
         expect(tree.lookup('cool')).to.equal(2);
         expect(tree.lookup('hi')).to.equal(3);
-        expect(tree.lookup('helium')).to.equal(4);
+        expect(tree.lookup('heli//u/m')).to.equal(4);
         expect(tree.lookup('coooool')).to.equal(5);
         expect(tree.lookup('chrome')).to.equal(6);
         expect(tree.lookup('choot')).to.equal(7);
+        expect(tree.lookup('chrome/coooo/il/li/iloool')).to.equal(9);
+        expect(tree.lookup('chrome/*/coooo/il/li/iloool')).to.equal(10);
+        expect(tree.lookup('choot/cobrowse')).to.equal(8);
+    
     });
 
     it('should be able to delete nodes', () => {
@@ -74,7 +86,7 @@ describe('Radix Tree', () => {
         expect(tree.lookup('choot')).to.equal(null);
     });
 
-    it('should be able retrieve data via prefix', () => {
+    it('should be able retrieve all results via prefix', () => {
         let tree = new RadixTree();
         tree.insert('hello', 1);
         tree.insert('cool', 2);
