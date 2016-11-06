@@ -10,7 +10,7 @@
     "radix-tree": "^0.3.4"
   },
   "name": "radix-router",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Radix tree based router",
   "main": "index.js",
   "repository": {
