@@ -8,6 +8,9 @@ var NORMAL_NODE = 0;
 var WILDCARD_NODE = 1;
 var PLACEHOLDER_NODE = 2;
 
+// no-op
+function noop() {}
+
 /**
  * Returns all children that match the prefix
  *
@@ -339,7 +342,7 @@ var NO_MATCH_HANDLERS = {
         return null;
     },
     'startsWith': function() {
-        return null;
+        return [];
     }
 };
 
@@ -351,10 +354,10 @@ var PLACEHOLDER_HANDLERS = {
         }
         data.params[key] = param;
     },
-    // no ops, (maybe
-    'delete': function() {},
-    'insert': function() {},
-    'startsWith': function() {}
+    // no ops, (maybe add different functionality later?)
+    'delete': noop,
+    'insert': noop,
+    'startsWith': noop
 };
 
 /**

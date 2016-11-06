@@ -38,7 +38,7 @@ describe('Radix Tree', () => {
         expect(oo_node.children['oool']).to.not.equal(undefined);
         expect(h2_node.children['rome']).to.not.equal(undefined);
         expect(h2_node.children['oot']).to.not.equal(undefined);
-        
+
     });
 
     it('should be able to perform a lookup properly', () => {
@@ -58,7 +58,7 @@ describe('Radix Tree', () => {
         tree.insert('carbon/:element', 14);
         tree.insert('carbon/:element/test/:testing', 15);
         tree.insert('this/:route/has/:cool/stuff/**', 16);
-        
+
         expect(tree.lookup('hello')).to.deep.equal({data: 1});
         expect(tree.lookup('cool')).to.deep.equal({data: 2});
         expect(tree.lookup('hi')).to.deep.equal({data: 3});
@@ -69,7 +69,7 @@ describe('Radix Tree', () => {
         expect(tree.lookup('chrome/coooo/il/li/iloool')).to.deep.equal({data: 9});
         expect(tree.lookup('chrome/*/coooo/il/li/iloool')).to.deep.equal({data: 13});
         expect(tree.lookup('carbon/test1')).to.deep.equal({
-            data: 14, 
+            data: 14,
             params: {
                 'element': 'test1'
             }
@@ -105,7 +105,7 @@ describe('Radix Tree', () => {
         tree.insert('coooool', 5);
         tree.insert('chrome', 6);
         tree.insert('choot', 7);
-        
+
         tree.delete('choot');
         expect(tree.lookup('choot')).to.deep.equal({
             data: null
@@ -131,5 +131,8 @@ describe('Radix Tree', () => {
         let setB = tree.startsWith('chro');
         expect(setB.hasOwnProperty('chrome')).to.equal(true);
         expect(setB.hasOwnProperty('chromium')).to.equal(true);
+
+        expect(Object.keys(tree.startsWith('batman')).length).to.equal(0);
     });
+
 });
