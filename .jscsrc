@@ -1,0 +1,11 @@
+{
+    "requireCurlyBraces": ["if", "else", "for", "while", "do"],
+    "requireSpaceAfterKeywords": ["if", "else", "for", "do", "switch", "return"],
+    "disallowSpaceAfterPrefixUnaryOperators": ["++", "--", "+", "-", "~", "!"],
+    "disallowSpaceBeforeBinaryOperators": [","],
+    "disallowSpaceBeforePostfixUnaryOperators": ["++", "--"],
+    "disallowTrailingComma": true,
+    "disallowTrailingWhitespace": true,
+    "excludeFiles": ["src/**/*.marko.js"],
+    "fileExtensions": [".js"]
+}

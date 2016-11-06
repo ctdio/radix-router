@@ -59,7 +59,6 @@ describe('Radix Tree', () => {
         tree.insert('carbon/:element/test/:testing', 15);
         tree.insert('this/:route/has/:cool/stuff/**', 16);
         
-        console.log('lllllllllllllllllllooooooooooooookkkkkkkkkkkkkkkk');
         expect(tree.lookup('hello')).to.deep.equal({data: 1});
         expect(tree.lookup('cool')).to.deep.equal({data: 2});
         expect(tree.lookup('hi')).to.deep.equal({data: 3});

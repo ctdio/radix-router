@@ -1,5 +1,6 @@
+'use strict';
 /**
- * JS Radix Router implementation 
+ * JS Radix Router implementation
  */
 
 // node types
@@ -10,7 +11,7 @@ var PLACEHOLDER_NODE = 2;
 /**
  * Returns all children that match the prefix
  *
- * @param {Node} - the node to check children for 
+ * @param {Node} - the node to check children for
  * @param {prefix} - the prefix to match
  */
 function _getAllPrefixChildren(node, str) {
@@ -28,7 +29,7 @@ function _getAllPrefixChildren(node, str) {
 /**
  * Returns the child matching the prefix
  *
- * @param {Node} - the node to check children for 
+ * @param {Node} - the node to check children for
  * @param {prefix} - the prefix to match
  */
 function _getChildNode(node, prefix) {
@@ -48,8 +49,7 @@ function _getChildNode(node, prefix) {
  * @param {string} str - the string used to find the largest prefix with
  */
 function _getLargestPrefix(children, str) {
-    var index = 0;;
-
+    var index = 0;
     for (let i = 0; i < children.length; i++) {
         var path = children[i].path;
         var totalIterations = Math.min(str.length, path.length);
@@ -86,13 +86,14 @@ function _traverse(options) {
     var data = options.data;
 
     var children = node.children;
+    var childNode;
 
     // check if a child is possibly a placeholder or a wildcard
     // if wildcard is found, use it as a backup if no result is found,
     // if placeholder is found, grab the data and traverse
     var wildcardNode = null;
     for (var i = 0; i < children.length; i++) {
-        var childNode = children[i];
+        childNode = children[i];
         if (children[i].type === WILDCARD_NODE) {
             wildcardNode = childNode;
             break;
@@ -119,11 +120,11 @@ function _traverse(options) {
     }
 
     var prefix = _getLargestPrefix(children, str);
-    
+
     // no matches, return null
     if (prefix.length === 0) {
         return onNoMatch(node, str, data) || wildcardNode;
-    } 
+    }
 
     // exact match with input string was found
     if (prefix.length === str.length) {
@@ -131,13 +132,13 @@ function _traverse(options) {
     }
 
     // get child
-    var childNode = _getChildNode(node, prefix);
+    childNode = _getChildNode(node, prefix);
     // child exists, continue traversing
     if (childNode) {
         options.node = childNode;
         options.str = str.slice(prefix.length);
         let result = _traverse(options);
-        // if no result, return the wildcard node 
+        // if no result, return the wildcard node
         if (!result && wildcardNode) {
             return wildcardNode;
         } else {
@@ -173,7 +174,7 @@ function _createNode(path, data) {
     let node;
     if (path[0] === ':') {
         node = new Node(path, data, PLACEHOLDER_NODE);
-    } else if(path === '**') {
+    } else if (path === '**') {
         node = new Node(path, data, WILDCARD_NODE);
     } else {
         // normal string to match
@@ -197,7 +198,6 @@ function _buildNodeChain(str, data) {
     startingPoint++;
 
     for (var i = startingPoint; i < sections.length; i++) {
-        let path;
         let parseRemaining = true;
         let newNode;
 
@@ -238,7 +238,6 @@ function _buildNodeChain(str, data) {
  * @param {object} data - the data to store in the new node
  */
 function _splitNode(node, prefix, str, data) {
-    var length = 0;
     var originalNode;
     var oldIndex;
 
@@ -290,7 +289,6 @@ var EXACT_MATCH_HANDLERS = {
                 }
             }
             parentNode.children.splice(i, 1);
-            return 
         } else {
             delete childNode.data;
         }
@@ -353,7 +351,7 @@ var PLACEHOLDER_HANDLERS = {
         }
         data.params[key] = param;
     },
-    // no ops, (maybe 
+    // no ops, (maybe
     'delete': function() {},
     'insert': function() {},
     'startsWith': function() {}
@@ -361,7 +359,7 @@ var PLACEHOLDER_HANDLERS = {
 
 /**
  * Helper method for retrieving all needed action handlers
- * 
+ *
  * @param {string} action - the action to perform
  */
 function _getHandlers(action) {
@@ -370,7 +368,7 @@ function _getHandlers(action) {
         onPartialMatch: PARTIAL_MATCH_HANDLERS[action],
         onNoMatch: NO_MATCH_HANDLERS[action],
         onPlaceholder: PLACEHOLDER_HANDLERS[action]
-    }
+    };
 }
 
 
@@ -391,10 +389,10 @@ function _validateInput(str) {
 function _startTraversal(rootNode, action, input, data) {
     var handlers = _getHandlers(action);
     return _traverse({
-        node: rootNode, 
-        str: input, 
-        onExactMatch: handlers.onExactMatch, 
-        onPartialMatch: handlers.onPartialMatch, 
+        node: rootNode,
+        str: input,
+        onExactMatch: handlers.onExactMatch,
+        onPartialMatch: handlers.onPartialMatch,
         onNoMatch: handlers.onNoMatch,
         onPlaceholder: handlers.onPlaceholder,
         data: data
@@ -443,8 +441,8 @@ RadixRouter.prototype = {
             _traverseDepths(result, prefix, map);
         } else {
             result.forEach(function(child) {
-                _traverseDepths(child, 
-                    prefix.substring(0, prefix.indexOf(child.path[0])) + child.path, 
+                _traverseDepths(child,
+                    prefix.substring(0, prefix.indexOf(child.path[0])) + child.path,
                     map);
             });
         }
@@ -458,7 +456,7 @@ RadixRouter.prototype = {
 
     delete: function(input) {
         _validateInput(input);
-        return  _startTraversal(this._rootNode, 'delete', input);
+        return _startTraversal(this._rootNode, 'delete', input);
     }
 };
 
