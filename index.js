@@ -2,7 +2,6 @@
  * JS Radix Router implementation 
  */
 
-const util = require('util');
 // node types
 var NORMAL_NODE = 0;
 var WILDCARD_NODE = 1;
@@ -83,22 +82,39 @@ function _traverse(options) {
     var onExactMatch = options.onExactMatch;
     var onPartialMatch = options.onPartialMatch;
     var onNoMatch = options.onNoMatch;
-    var onWildcard = options.onWildcard;
     var onPlaceholder = options.onPlaceholder;
     var data = options.data;
-
 
     var children = node.children;
 
     // check if a child is possibly a placeholder or a wildcard
-    // if wildcard is found, use it as a backup if no result is found
-    var wildcardNode;
+    // if wildcard is found, use it as a backup if no result is found,
+    // if placeholder is found, grab the data and traverse
+    var wildcardNode = null;
     for (var i = 0; i < children.length; i++) {
+        var childNode = children[i];
         if (children[i].type === WILDCARD_NODE) {
-            wildcardNode = children[i];
+            wildcardNode = childNode;
             break;
         } else if (children[i].type === PLACEHOLDER_NODE) {
-            // TODO:
+            var key = childNode.path.slice(1);
+            var slashIndex = str.indexOf('/');
+            var param;
+            if (slashIndex !== -1) {
+                param = str.slice(0, slashIndex);
+            } else {
+                param = str;
+            }
+            options.node = children[i];
+            options.str = str.slice(param.length);
+
+            onPlaceholder(key, param, data);
+            // return the child node if there is nowhere else to go
+            // otherwise, traverse to the child
+            if (options.str.length === 0) {
+                return children[i];
+            }
+            return _traverse(options);
         }
     }
 
@@ -121,6 +137,7 @@ function _traverse(options) {
         options.node = childNode;
         options.str = str.slice(prefix.length);
         let result = _traverse(options);
+        // if no result, return the wildcard node 
         if (!result && wildcardNode) {
             return wildcardNode;
         } else {
@@ -149,6 +166,9 @@ function _traverseDepths(node, str, map) {
     });
 }
 
+/**
+ * Helper function for creating a node based the path and data it is given
+ */
 function _createNode(path, data) {
     let node;
     if (path[0] === ':') {
@@ -325,34 +345,18 @@ var NO_MATCH_HANDLERS = {
     }
 };
 
-var WILDCARD_HANDLERS = {
-    'insert': function(parentNode, str, data) {
-        return 
-    },
-    'delete': function() {
-        return null;
-    },
-    'lookup': function(wildcardNode) {
-        return wildcardNode;
-    },
-    'startsWith': function() {
-        return null;
-    }
-};
-
+// handle situations where a place holder was found
 var PLACEHOLDER_HANDLERS = {
-    'insert': function(parentNode, str, data) {
-        return newNode;
+    'lookup': function(key, param, data) {
+        if (!data.params) {
+            data.params = {};
+        }
+        data.params[key] = param;
     },
-    'delete': function() {
-        return null;
-    },
-    'lookup': function() {
-        return null;
-    },
-    'startsWith': function() {
-        return null;
-    }
+    // no ops, (maybe 
+    'delete': function() {},
+    'insert': function() {},
+    'startsWith': function() {}
 };
 
 /**
@@ -360,12 +364,11 @@ var PLACEHOLDER_HANDLERS = {
  * 
  * @param {string} action - the action to perform
  */
-function _getHandler(action) {
+function _getHandlers(action) {
     return {
         onExactMatch: EXACT_MATCH_HANDLERS[action],
         onPartialMatch: PARTIAL_MATCH_HANDLERS[action],
         onNoMatch: NO_MATCH_HANDLERS[action],
-        onWildcard: WILDCARD_HANDLERS[action],
         onPlaceholder: PLACEHOLDER_HANDLERS[action]
     }
 }
@@ -386,16 +389,15 @@ function _validateInput(str) {
  * @param {object} data - the object to store in the Radix Tree
  */
 function _startTraversal(rootNode, action, input, data) {
-    var handlers = _getHandler(action);
+    var handlers = _getHandlers(action);
     return _traverse({
         node: rootNode, 
         str: input, 
         onExactMatch: handlers.onExactMatch, 
         onPartialMatch: handlers.onPartialMatch, 
         onNoMatch: handlers.onNoMatch,
-        onWildcard: handlers.onWildcard,
-        onPlaceholder: handlers.onWildcard,
-        data:data
+        onPlaceholder: handlers.onPlaceholder,
+        data: data
     });
 }
 
@@ -408,7 +410,7 @@ function Node(path, data, type) {
     this.path = path;
     this.parent = undefined;
     this.children = [];
-    this.data = data;
+    this.data = data || null;
 }
 
 /**
@@ -424,8 +426,12 @@ function RadixRouter(options) {
 RadixRouter.prototype = {
     lookup: function(input) {
         _validateInput(input);
-        var node = _startTraversal(this._rootNode, 'lookup', input);
-        return node && node.data;
+        var result = {
+            data: null
+        };
+        var node = _startTraversal(this._rootNode, 'lookup', input, result);
+        result.data = node ? node.data : null;
+        return result;
     },
 
     startsWith: function(prefix) {
@@ -442,7 +448,6 @@ RadixRouter.prototype = {
                     map);
             });
         }
-
         return map;
     },
 

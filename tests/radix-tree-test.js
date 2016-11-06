@@ -3,18 +3,8 @@ const util = require('util');
 
 let RadixTree = require('../index');
 
-/**
- * Expected structure:
- *            root
- *         /        \
- *        h             c
- *      /  \         /    \
- *     i   el       oo       h
- *       /   \     / \       /  \
- *      lo  ium  l  oool   rome  oot
- */
 describe('Radix Tree', () => {
-    // TODO: Redo this portion
+    // TODO: Redo this portion to show valid structure
     it.skip('should be able to insert nodes correctly into the tree', () => {
         let tree = new RadixTree();
         tree.insert('hello');
@@ -24,6 +14,16 @@ describe('Radix Tree', () => {
         tree.insert('coooool');
         tree.insert('chrome');
         tree.insert('choot');
+        /**
+         * Expected structure:
+         *            root
+         *         /        \
+         *        h             c
+         *      /  \         /    \
+         *     i   el       oo       h
+         *       /   \     / \       /  \
+         *      lo  ium  l  oool   rome  oot
+         */
 
         let h_node = tree._rootNode.children['h'];
         let el_node = h_node.children['el'];
@@ -41,7 +41,7 @@ describe('Radix Tree', () => {
         
     });
 
-    it.only('should be able to perform a lookup properly', () => {
+    it('should be able to perform a lookup properly', () => {
         let tree = new RadixTree();
         tree.insert('hello', 1);
         tree.insert('cool', 2);
@@ -51,25 +51,50 @@ describe('Radix Tree', () => {
         tree.insert('chrome', 6);
         tree.insert('choot', 7);
         tree.insert('chrome/coooo/il/li/iloool', 9)
-        tree.insert('//chrome//coooo/il/li/iloool', 9)
-        tree.insert('/chrome//coooo/il/li/iloool', 9)
-        tree.insert('choot/:cobrowse', 8);
-        tree.insert('chrome/**', 9);
-        tree.insert('chrome/*/coooo/il/li/iloool', 10);
-        console.log(util.inspect(tree, {depth: null}));
-        console.log(tree.startsWith('chrom'));
+        tree.insert('//chrome//coooo/il/li/iloool', 10)
+        tree.insert('/chrome//coooo/il/li/iloool', 11)
+        tree.insert('chrome/**', 12);
+        tree.insert('chrome/*/coooo/il/li/iloool', 13);
+        tree.insert('carbon/:element', 14);
+        tree.insert('carbon/:element/test/:testing', 15);
+        tree.insert('this/:route/has/:cool/stuff/**', 16);
         
-        expect(tree.lookup('hello')).to.equal(1);
-        expect(tree.lookup('cool')).to.equal(2);
-        expect(tree.lookup('hi')).to.equal(3);
-        expect(tree.lookup('heli//u/m')).to.equal(4);
-        expect(tree.lookup('coooool')).to.equal(5);
-        expect(tree.lookup('chrome')).to.equal(6);
-        expect(tree.lookup('choot')).to.equal(7);
-        expect(tree.lookup('chrome/coooo/il/li/iloool')).to.equal(9);
-        expect(tree.lookup('chrome/*/coooo/il/li/iloool')).to.equal(10);
-        expect(tree.lookup('choot/cobrowse')).to.equal(8);
-    
+        console.log('lllllllllllllllllllooooooooooooookkkkkkkkkkkkkkkk');
+        expect(tree.lookup('hello')).to.deep.equal({data: 1});
+        expect(tree.lookup('cool')).to.deep.equal({data: 2});
+        expect(tree.lookup('hi')).to.deep.equal({data: 3});
+        expect(tree.lookup('heli//u/m')).to.deep.equal({data: 4});
+        expect(tree.lookup('coooool')).to.deep.equal({data: 5});
+        expect(tree.lookup('chrome')).to.deep.equal({data: 6});
+        expect(tree.lookup('choot')).to.deep.equal({data: 7});
+        expect(tree.lookup('chrome/coooo/il/li/iloool')).to.deep.equal({data: 9});
+        expect(tree.lookup('chrome/*/coooo/il/li/iloool')).to.deep.equal({data: 13});
+        expect(tree.lookup('carbon/test1')).to.deep.equal({
+            data: 14, 
+            params: {
+                'element': 'test1'
+            }
+        });
+        expect(tree.lookup('carbon/test2/test/test23')).to.deep.equal({
+            data: 15,
+            params: {
+                'element': 'test2',
+                'testing': 'test23'
+            }
+        });
+        expect(tree.lookup('this/test/has/more/stuff/seflijsfelisjef')).to.deep.equal({
+            data: 16,
+            params: {
+                route: 'test',
+                cool: 'more'
+            }
+        });
+        expect(tree.lookup('this/is')).to.deep.equal({
+            data: null,
+            params: {
+                route: 'is'
+            }
+        });
     });
 
     it('should be able to delete nodes', () => {
@@ -83,7 +108,9 @@ describe('Radix Tree', () => {
         tree.insert('choot', 7);
         
         tree.delete('choot');
-        expect(tree.lookup('choot')).to.equal(null);
+        expect(tree.lookup('choot')).to.deep.equal({
+            data: null
+        });
     });
 
     it('should be able retrieve all results via prefix', () => {
