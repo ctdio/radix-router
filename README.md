@@ -37,56 +37,56 @@ router.insert('/api/v2/**', {
     such: 'wildcard'
 });
 
-router.insert('/api/v1/otherroute/:id', {
+router.insert('/api/v1/other-route/:id', {
     so: 'placeholder',
     much: 'wow'
 });
 
 router.lookup('/api/v1/route');
-returns {
-    path: '/api/v1/route',
-    data: {
-        much: 'data'
-    }
-}
+// returns {
+//     path: '/api/v1/route',
+//     data: {
+//         much: 'data'
+//     }
+// }
 
 router.lookup('/api/v2/anything/goes/here');
-returns {
-    path: '/api/v2/cool',
-    data: {
-        such: 'wildcard'
-    }
-}
+// returns {
+//     path: '/api/v2/cool',
+//     data: {
+//         such: 'wildcard'
+//     }
+// }
 
 router.lookup('/api/v1/other-route/abcd');
-returns {
-    path: '/api/v1/other-route/abcd',
-    data: {
-        so: 'placeholder',
-        much: 'wow'
-    },
-    params: {
-        id: 'abcd'
-    }
-}
+// returns {
+//     path: '/api/v1/other-route/abcd',
+//     data: {
+//         so: 'placeholder',
+//         much: 'wow'
+//     },
+//     params: {
+//         id: 'abcd'
+//     }
+// }
 
 // remove route
 router.delete('/api/v2/**');
 
 router.lookup('/api/v2/anything/goes/here');
-returns {
-    path: '/api/v2/cool',
-    data: null
-}
+// returns {
+//     path: '/api/v2/cool',
+//     data: null
+// }
 
 route.startsWith('/api')
-returns {
-    '/api/v1/route': {
-        much: 'data'
-    },
-    '/api/v1/other-route/:id': {
-        so: 'placeholder',
-        much: 'wow'
-    }
-}
+// returns {
+//     '/api/v1/route': {
+//         much: 'data'
+//     },
+//     '/api/v1/other-route/:id': {
+//         so: 'placeholder',
+//         much: 'wow'
+//     }
+// }
 ```
