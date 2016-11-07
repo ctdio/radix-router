@@ -18,5 +18,8 @@
     "type": "git"
   },
   "author": "Charlie Duong <charlieduong94@gmail.com>",
-  "license": "MIT"
+  "license": "MIT",
+  "scripts": {
+    "test": "./run-tests.sh"
+  }
 }
