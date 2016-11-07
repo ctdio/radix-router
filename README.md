@@ -15,8 +15,11 @@ yarn add radix-router
 ### Usage
 
 `insert(path, data)` - adds the given path to the router and associates the given data with the path
+
 `lookup(path)` - performs a lookup of the path. If there is a match, the data associated with the route is returned
+
 `delete(path)` - deletes the path from the router
+
 `startsWith(prefix)` - returns a map of all routes starting with the given prefix and the data associated with them
 
 ### Example
