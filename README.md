@@ -54,7 +54,7 @@ router.lookup('/api/v1/route');
 
 router.lookup('/api/v2/anything/goes/here');
 // returns {
-//     path: '/api/v2/cool',
+//     path: '/api/v2/anything/goes/here',
 //     data: {
 //         such: 'wildcard'
 //     }
@@ -77,7 +77,7 @@ router.delete('/api/v2/**');
 
 router.lookup('/api/v2/anything/goes/here');
 // returns {
-//     path: '/api/v2/cool',
+//     path: '/api/v2/anything/goes/here',
 //     data: null
 // }
 
