@@ -2,7 +2,8 @@
 
 [![Build Status](https://travis-ci.org/charlieduong94/radix-router.svg?branch=master)](https://travis-ci.org/charlieduong94/radix-router)
 
-A simple router implemented using a [Radix Tree](https://en.wikipedia.com/wiki/Radix_tree) (aka compact [Prefix Tree](https://en.wikipedia.com/wiki/Trie)).
+A router implemented using a [Radix Tree](https://en.wikipedia.com/wiki/Radix_tree) (aka compact [Prefix Tree](https://en.wikipedia.com/wiki/Trie)).
+This router has support for placeholders and wildcards.
 
 ### Installation
 ```

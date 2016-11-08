@@ -8,7 +8,7 @@ var NORMAL_NODE = 0;
 var WILDCARD_NODE = 1;
 var PLACEHOLDER_NODE = 2;
 
-// no-op
+// noop
 function noop() {}
 
 /**
@@ -95,30 +95,33 @@ function _traverse(options) {
     // if wildcard is found, use it as a backup if no result is found,
     // if placeholder is found, grab the data and traverse
     var wildcardNode = null;
-    for (var i = 0; i < children.length; i++) {
-        childNode = children[i];
-        if (children[i].type === WILDCARD_NODE) {
-            wildcardNode = childNode;
-            break;
-        } else if (children[i].type === PLACEHOLDER_NODE) {
-            var key = childNode.path.slice(1);
-            var slashIndex = str.indexOf('/');
-            var param;
-            if (slashIndex !== -1) {
-                param = str.slice(0, slashIndex);
-            } else {
-                param = str;
-            }
-            options.node = children[i];
-            options.str = str.slice(param.length);
+    if (onPlaceholder) {
+        for (var i = 0; i < children.length; i++) {
+            childNode = children[i];
+            if (children[i].type === WILDCARD_NODE) {
+                wildcardNode = childNode;
+            } else if (children[i].type === PLACEHOLDER_NODE) {
+                var key = childNode.path.slice(1);
+                var slashIndex = str.indexOf('/');
 
-            onPlaceholder(key, param, data);
-            // return the child node if there is nowhere else to go
-            // otherwise, traverse to the child
-            if (options.str.length === 0) {
-                return children[i];
+                var param;
+                if (slashIndex !== -1) {
+                    param = str.slice(0, slashIndex);
+                } else {
+                    param = str;
+                }
+
+                options.node = children[i];
+                options.str = str.slice(param.length);
+
+                return onPlaceholder({
+                    key: key,
+                    param: param,
+                    data: data,
+                    options: options,
+                    childNode: childNode
+                });
             }
-            return _traverse(options);
         }
     }
 
@@ -126,12 +129,17 @@ function _traverse(options) {
 
     // no matches, return null
     if (prefix.length === 0) {
-        return onNoMatch(node, str, data) || wildcardNode;
+        return onNoMatch(options) || wildcardNode;
     }
 
     // exact match with input string was found
     if (prefix.length === str.length) {
-        return onExactMatch(node, prefix, str, data) || wildcardNode;
+        return onExactMatch({
+            node: node,
+            prefix: prefix,
+            str: str,
+            data: data
+        }) || wildcardNode;
     }
 
     // get child
@@ -140,7 +148,7 @@ function _traverse(options) {
     if (childNode) {
         options.node = childNode;
         options.str = str.slice(prefix.length);
-        let result = _traverse(options);
+        var result = _traverse(options);
         // if no result, return the wildcard node
         if (!result && wildcardNode) {
             return wildcardNode;
@@ -150,7 +158,12 @@ function _traverse(options) {
     }
 
     // partial match was found
-    return onPartialMatch(node, prefix, str, data) || wildcardNode;
+    return onPartialMatch({
+        node: node,
+        prefix: prefix,
+        str: str,
+        data: data
+    }) || wildcardNode;
 }
 
 /**
@@ -160,13 +173,16 @@ function _traverse(options) {
  * @param {string} str - the string that is the base of the key
  * @param {object} map - the map to traverse the cobrowse event with
  */
-function _traverseDepths(node, str, map) {
+function _traverseDepths(node, str, array) {
     if (node.data) {
-        map[str] = node.data;
+        array.push({
+            path: str,
+            data: node.data
+        });
     }
 
     node.children.forEach(function(child) {
-        _traverseDepths(child, str + child.path, map);
+        _traverseDepths(child, str + child.path, array);
     });
 }
 
@@ -277,12 +293,18 @@ function _splitNode(node, prefix, str, data) {
 
 // handle exact matches
 var EXACT_MATCH_HANDLERS = {
-    'insert': function(node, prefix, str, data) {
+    'insert': function(options) {
+        var node = options.node;
+        var prefix = options.prefix;
+        var str = options.str;
+        var data = options.data;
         var childNode = _getChildNode(node, prefix);
         childNode.data = data;
         return node;
     },
-    'delete': function(parentNode, prefix) {
+    'delete': function(options) {
+        var parentNode = options.node;
+        var prefix = options.prefix;
         var childNode = _getChildNode(parentNode, prefix);
         if (childNode.children.length ===  0) {
             // delete node from parent
@@ -293,15 +315,20 @@ var EXACT_MATCH_HANDLERS = {
             }
             parentNode.children.splice(i, 1);
         } else {
-            delete childNode.data;
+            childNode.data = null;
         }
         return childNode;
     },
-    'lookup': function(node, prefix) {
+    'lookup': function(options) {
+        var node = options.node;
+        var prefix = options.prefix;
         var discoveredNode = _getChildNode(node, prefix);
         return discoveredNode;
     },
-    'startsWith': function(node, prefix, str) {
+    'startsWith': function(options) {
+        var node = options.node;
+        var prefix = options.prefix;
+        var str = options.str;
         var childNode = _getChildNode(node, prefix);
         if (childNode) {
             return childNode;
@@ -312,24 +339,34 @@ var EXACT_MATCH_HANDLERS = {
 
 // handle situations where there is a partial match
 var PARTIAL_MATCH_HANDLERS = {
-    'insert': function(node, prefix, str, data) {
+    'insert': function(options) {
+        var node = options.node;
+        var prefix = options.prefix;
+        var str = options.str;
+        var data = options.data;
         var newNode = _splitNode(node, prefix, str, data);
         return newNode;
     },
     'delete': function() {
         return null;
     },
-    'lookup': function(node) {
+    'lookup': function() {
         return null;
     },
-    'startsWith': function(node, prefix) {
+    'startsWith': function(options) {
+        var node = options.node;
+        var prefix = options.prefix;
         return _getAllPrefixChildren(node, prefix);
     }
 };
 
 // handle situtations where there is no match
 var NO_MATCH_HANDLERS = {
-    'insert': function(parentNode, str, data) {
+    'insert': function(options) {
+        var parentNode = options.node;
+        var prefix = options.prefix;
+        var str = options.str;
+        var data = options.data;
         var newNode = _buildNodeChain(str, data);
         parentNode.children.push(newNode);
         newNode.parent = parentNode;
@@ -346,18 +383,50 @@ var NO_MATCH_HANDLERS = {
     }
 };
 
+function _onPlaceholder(placeholderOptions) {
+    var options = placeholderOptions.options;
+    var childNode = options.node;
+    var parentNode = options.node.parent;
+    var str = options.str;
+    var data = options.data;
+
+    // return the child node if there is nowhere else to go
+    // otherwise, traverse to the child
+    if (options.str.length === 0) {
+        return options.onExactMatch({
+            node: parentNode,
+            prefix: childNode.path,
+            str: str,
+            data: data
+        });
+    }
+    return _traverse(options);
+}
+
 // handle situations where a place holder was found
 var PLACEHOLDER_HANDLERS = {
-    'lookup': function(key, param, data) {
+    // lookup handles placeholders differently
+    'lookup': function(placeholderOptions) {
+        var key = placeholderOptions.key;
+        var param = placeholderOptions.param;
+        var options = placeholderOptions.options;
+        var data = options.data;
+
         if (!data.params) {
             data.params = {};
         }
         data.params[key] = param;
+
+        if (options.str.length === 0) {
+            return options.node;
+        }
+
+        return _traverse(options);
     },
-    // no ops, (maybe add different functionality later?)
-    'delete': noop,
-    'insert': noop,
-    'startsWith': noop
+    // inserts shouldn't care about placeholders at all
+    'insert': null,
+    'delete': _onPlaceholder,
+    'startsWith': _onPlaceholder
 };
 
 /**
@@ -375,10 +444,16 @@ function _getHandlers(action) {
 }
 
 
-function _validateInput(str) {
-    if (typeof str !== 'string') {
+function _validateInput(input) {
+    var path = input;
+    if (typeof path !== 'string') {
         throw new Error('Radix Tree input must be a string');
     }
+    // allow for trailing slashes to match by removing it
+    if (path[path.length -1] === '/') {
+        path = path.slice(0, path.length -1);
+    }
+    return path;
 }
 
 /**
@@ -426,11 +501,12 @@ function RadixRouter(options) {
 
 RadixRouter.prototype = {
     lookup: function(input) {
-        _validateInput(input);
+        var path = _validateInput(input);
         var result = {
+            path: input,
             data: null
         };
-        var node = _startTraversal(this._rootNode, 'lookup', input, result);
+        var node = _startTraversal(this._rootNode, 'lookup', path, result);
         result.data = node ? node.data : null;
         return result;
     },
@@ -439,27 +515,27 @@ RadixRouter.prototype = {
         _validateInput(prefix);
         var result = _startTraversal(this._rootNode, 'startsWith', prefix);
 
-        var map = {};
+        var resultArray = [];
         if (result instanceof Node) {
-            _traverseDepths(result, prefix, map);
+            _traverseDepths(result, prefix, resultArray);
         } else {
             result.forEach(function(child) {
                 _traverseDepths(child,
                     prefix.substring(0, prefix.indexOf(child.path[0])) + child.path,
-                    map);
+                    resultArray);
             });
         }
-        return map;
+        return resultArray;
     },
 
     insert: function(input, data) {
-        _validateInput(input);
-        return _startTraversal(this._rootNode, 'insert', input, data);
+        var path = _validateInput(input);
+        return _startTraversal(this._rootNode, 'insert', path, data);
     },
 
     delete: function(input) {
-        _validateInput(input);
-        return _startTraversal(this._rootNode, 'delete', input);
+        var path = _validateInput(input);
+        return _startTraversal(this._rootNode, 'delete', path);
     }
 };
 
