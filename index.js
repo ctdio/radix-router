@@ -53,7 +53,7 @@ function _getChildNode(node, prefix) {
  */
 function _getLargestPrefix(children, str) {
     var index = 0;
-    for (let i = 0; i < children.length; i++) {
+    for (var i = 0; i < children.length; i++) {
         var path = children[i].path;
         var totalIterations = Math.min(str.length, path.length);
         for (; index < totalIterations; index++) {
@@ -190,7 +190,7 @@ function _traverseDepths(node, str, array) {
  * Helper function for creating a node based the path and data it is given
  */
 function _createNode(path, data) {
-    let node;
+    var node;
     if (path[0] === ':') {
         node = new Node(path, data, PLACEHOLDER_NODE);
     } else if (path === '**') {
@@ -203,10 +203,10 @@ function _createNode(path, data) {
 }
 
 function _buildNodeChain(str, data) {
-    let parentNode;
-    let currentNode;
-    let startingPoint = 0;
-    let sections = str.split('/');
+    var parentNode;
+    var currentNode;
+    var startingPoint = 0;
+    var sections = str.split('/');
     // first section is a special case, if it has real content, create a node
     // otherwise, create an empty node
     if (sections[startingPoint].length > 0) {
@@ -217,8 +217,8 @@ function _buildNodeChain(str, data) {
     startingPoint++;
 
     for (var i = startingPoint; i < sections.length; i++) {
-        let parseRemaining = true;
-        let newNode;
+        var parseRemaining = true;
+        var newNode;
 
         // add slash to last node if the last section was empty
         if (i > 0 && sections[i - 1].length === 0){
@@ -234,7 +234,7 @@ function _buildNodeChain(str, data) {
         }
 
         if (parseRemaining) {
-            let path = sections[i];
+            var path = sections[i];
             newNode = _createNode(path);
         }
 
