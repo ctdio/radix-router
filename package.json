@@ -2,7 +2,9 @@
   "devDependencies": {
     "benchmark": "^2.1.2",
     "chai": "^3.5.0",
+    "coveralls": "^2.11.14",
     "git-hooks": "^1.1.6",
+    "istanbul": "^0.4.5",
     "jscs": "^3.0.7",
     "jshint": "^2.9.4",
     "mocha": "^3.1.2",
@@ -20,6 +22,8 @@
   "author": "Charlie Duong <charlieduong94@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "test": "./run-tests.sh"
+    "test": "./run-tests.sh",
+    "test-coverage": "istanbul cover _mocha --include-all-sources -- --ui bdd --reporter spec ./tests",
+    "coveralls": "cat ./coverage/lcov.info | coveralls"
   }
 }
