@@ -4,9 +4,16 @@ const RadixRouter = require('../index');
 describe('Router lookup', () => {
     it('should be able lookup static routes', () => {
         let router = new RadixRouter();
+
+        router.insert('/', true);
         router.insert('/route', true);
         router.insert('/another-route', true);
         router.insert('/this/is/yet/another/route', true);
+
+        expect(router.lookup('/')).to.deep.equal({
+            path: '/',
+            data: true
+        });
 
         expect(router.lookup('/route')).to.deep.equal({
             path: '/route',
@@ -102,6 +109,59 @@ describe('Router lookup', () => {
         expect(router.lookup('route/with/trailing/slash')).to.deep.equal({
             path: 'route/with/trailing/slash',
             data: true
+        });
+
+        expect(router.lookup('route/with/trailing/slash/')).to.deep.equal({
+            path: 'route/with/trailing/slash/',
+            data: true
+        });
+
+    });
+
+    it('should not match routes with trailing slash if router is created with strict mode', () => {
+        let router = new RadixRouter({
+            strict: true
+        });
+
+        router.insert('/', 1);
+        router.insert('//', 2);
+        router.insert('///', 3);
+        router.insert('////', 4);
+        router.insert('route/without/trailing/slash', true);
+        router.insert('route/with/trailing/slash/', true);
+
+        expect(router.lookup('/')).to.deep.equal({
+            path: '/',
+            data: 1
+        });
+
+        expect(router.lookup('//')).to.deep.equal({
+            path: '//',
+            data: 2
+        });
+
+        expect(router.lookup('///')).to.deep.equal({
+            path: '///',
+            data: 3
+        });
+
+        expect(router.lookup('////')).to.deep.equal({
+            path: '////',
+            data: 4
+        });
+        expect(router.lookup('route/without/trailing/slash')).to.deep.equal({
+            path: 'route/without/trailing/slash',
+            data: true
+        });
+
+        expect(router.lookup('route/without/trailing/slash/')).to.deep.equal({
+            path: 'route/without/trailing/slash/',
+            data: null
+        });
+
+        expect(router.lookup('route/with/trailing/slash')).to.deep.equal({
+            path: 'route/with/trailing/slash',
+            data: null
         });
 
         expect(router.lookup('route/with/trailing/slash/')).to.deep.equal({

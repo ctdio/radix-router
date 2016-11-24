@@ -66,6 +66,7 @@ function _getLargestPrefix(children, str) {
         }
     }
 
+    console.log('string',str);
     // largest prefix
     return str.slice(0, index);
 }
@@ -127,6 +128,7 @@ function _traverse(options) {
 
     var prefix = _getLargestPrefix(children, str);
 
+    console.log('prefix', prefix);
     // no matches, return null
     if (prefix.length === 0) {
         return onNoMatch(options) || wildcardNode;
@@ -206,7 +208,16 @@ function _buildNodeChain(str, data) {
     var parentNode;
     var currentNode;
     var startingPoint = 0;
+
+    // if the string is just a single slash, return the node
+    // otherwise just slash the node
+    if (str.length === 0 || str === '/') {
+        console.log('!!!!!!!!!!!!!!!!!!!!!!string length is zero');
+        return new Node('/', data);
+    }
+
     var sections = str.split('/');
+    console.log('sections', sections);
     // first section is a special case, if it has real content, create a node
     // otherwise, create an empty node
     if (sections[startingPoint].length > 0) {
@@ -242,7 +253,14 @@ function _buildNodeChain(str, data) {
         newNode.parent = currentNode;
         currentNode = newNode;
     }
-    currentNode.data = data;
+
+    // if the last node's path is empty, remove it.
+    if (currentNode.path === '') {
+        currentNode.parent.children = [];
+        currentNode.parent.data = data;
+    } else {
+        currentNode.data = data;
+    }
 
     return parentNode;
 }
@@ -444,15 +462,17 @@ function _getHandlers(action) {
 }
 
 
-function _validateInput(input) {
+function _validateInput(input, strictPaths) {
     var path = input;
     if (typeof path !== 'string') {
         throw new Error('Radix Tree input must be a string');
     }
     // allow for trailing slashes to match by removing it
-    if (path[path.length -1] === '/') {
-        path = path.slice(0, path.length -1);
+
+    if (!strictPaths && path.length > 1 && path[path.length - 1] === '/') {
+        path = path.slice(0, path.length - 1);
     }
+
     return path;
 }
 
@@ -495,25 +515,28 @@ function Node(path, data, type) {
  */
 function RadixRouter(options) {
     this._rootNode = new Node();
+    this._strictMode = !!options && options.strict;
     // TODO: handle routes passed in via options
 }
 
 
 RadixRouter.prototype = {
     lookup: function(input) {
-        var path = _validateInput(input);
+        var self = this;
+        var path = _validateInput(input, self._strictMode);
         var result = {
             path: input,
             data: null
         };
-        var node = _startTraversal(this._rootNode, 'lookup', path, result);
+        var node = _startTraversal(self._rootNode, 'lookup', path, result);
         result.data = node ? node.data : null;
         return result;
     },
 
     startsWith: function(prefix) {
-        _validateInput(prefix);
-        var result = _startTraversal(this._rootNode, 'startsWith', prefix);
+        var self = this;
+        _validateInput(prefix, self._strictMode);
+        var result = _startTraversal(self._rootNode, 'startsWith', prefix);
 
         var resultArray = [];
         if (result instanceof Node) {
@@ -529,13 +552,15 @@ RadixRouter.prototype = {
     },
 
     insert: function(input, data) {
-        var path = _validateInput(input);
-        return _startTraversal(this._rootNode, 'insert', path, data);
+        var self = this;
+        var path = _validateInput(input, self._strictMode);
+        return _startTraversal(self._rootNode, 'insert', path, data);
     },
 
     delete: function(input) {
-        var path = _validateInput(input);
-        return _startTraversal(this._rootNode, 'delete', path);
+        var self = this;
+        var path = _validateInput(input, self._strictMode);
+        return _startTraversal(self._rootNode, 'delete', path);
     }
 };
 
