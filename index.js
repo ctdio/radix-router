@@ -66,7 +66,6 @@ function _getLargestPrefix(children, str) {
         }
     }
 
-    console.log('string',str);
     // largest prefix
     return str.slice(0, index);
 }
@@ -128,7 +127,6 @@ function _traverse(options) {
 
     var prefix = _getLargestPrefix(children, str);
 
-    console.log('prefix', prefix);
     // no matches, return null
     if (prefix.length === 0) {
         return onNoMatch(options) || wildcardNode;
@@ -212,12 +210,10 @@ function _buildNodeChain(str, data) {
     // if the string is just a single slash, return the node
     // otherwise just slash the node
     if (str.length === 0 || str === '/') {
-        console.log('!!!!!!!!!!!!!!!!!!!!!!string length is zero');
         return new Node('/', data);
     }
 
     var sections = str.split('/');
-    console.log('sections', sections);
     // first section is a special case, if it has real content, create a node
     // otherwise, create an empty node
     if (sections[startingPoint].length > 0) {

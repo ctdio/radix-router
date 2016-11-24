@@ -17,20 +17,28 @@ yarn add radix-router
 
 ### Usage
 
-`insert(path, data)` - adds the given path to the router and associates the given data with the path
+`new RadixRouter(options)` - Creates a new instance of a router. The `options` object is optional.
 
-`lookup(path)` - performs a lookup of the path. If there is a match, the data associated with the route is returned
+Possible parameters for the `options` object:
 
-`delete(path)` - deletes the path from the router
+- `strict` - Setting this option to `true` will force lookups to match exact paths (trailing slashes will not be ignored). Defaults to `false`.
 
-`startsWith(prefix)` - returns a map of all routes starting with the given prefix and the data associated with them
+`insert(path, data)` - Adds the given path to the router and associates the given data with the path.
+
+`lookup(path)` - Performs a lookup of the path. If there is a match, the data associated with the route is returned.
+
+`delete(path)` - Deletes the path from the router.
+
+`startsWith(prefix)` - Returns a map of all routes starting with the given prefix and the data associated with them.
 
 ### Example
 
 ```
 const RadixRouter = require('radix-router');
 
-let router = new RadixRouter();
+let router = new RadixRouter({
+    strict: true
+});
 
 router.insert('/api/v1/route', {
     much: 'data'
