@@ -1,15 +1,12 @@
-'use strict';
+'use strict'
 /**
  * JS Radix Router implementation
  */
 
 // node types
-var NORMAL_NODE = 0;
-var WILDCARD_NODE = 1;
-var PLACEHOLDER_NODE = 2;
-
-// noop
-function noop() {}
+var NORMAL_NODE = 0
+var WILDCARD_NODE = 1
+var PLACEHOLDER_NODE = 2
 
 /**
  * Returns all children that match the prefix
@@ -17,16 +14,16 @@ function noop() {}
  * @param {Node} - the node to check children for
  * @param {prefix} - the prefix to match
  */
-function _getAllPrefixChildren(node, str) {
-    var nodes = [];
-    var children = node.children;
-    for (var i = 0; i < children.length; i++) {
+function _getAllPrefixChildren (node, str) {
+  var nodes = []
+  var children = node.children
+  for (var i = 0; i < children.length; i++) {
         // only need to check for first char
-        if (children[i].path[0] === str[0]) {
-            nodes.push(children[i]);
-        }
+    if (children[i].path[0] === str[0]) {
+      nodes.push(children[i])
     }
-    return nodes;
+  }
+  return nodes
 }
 
 /**
@@ -35,14 +32,14 @@ function _getAllPrefixChildren(node, str) {
  * @param {Node} - the node to check children for
  * @param {prefix} - the prefix to match
  */
-function _getChildNode(node, prefix) {
-    var children = node.children;
-    for (var i = 0; i < children.length; i++) {
-        if (children[i].path === prefix) {
-            return children[i];
-        }
+function _getChildNode (node, prefix) {
+  var children = node.children
+  for (var i = 0; i < children.length; i++) {
+    if (children[i].path === prefix) {
+      return children[i]
     }
-    return null;
+  }
+  return null
 }
 
 /**
@@ -51,23 +48,23 @@ function _getChildNode(node, prefix) {
  * @param {object <string, Node>} children - a dictionary of childNodes
  * @param {string} str - the string used to find the largest prefix with
  */
-function _getLargestPrefix(children, str) {
-    var index = 0;
-    for (var i = 0; i < children.length; i++) {
-        var path = children[i].path;
-        var totalIterations = Math.min(str.length, path.length);
-        for (; index < totalIterations; index++) {
-            if (str[index] !== path[index]) {
-                break;
-            }
-        }
-        if (index > 0) {
-            break;
-        }
+function _getLargestPrefix (children, str) {
+  var index = 0
+  for (var i = 0; i < children.length; i++) {
+    var path = children[i].path
+    var totalIterations = Math.min(str.length, path.length)
+    for (; index < totalIterations; index++) {
+      if (str[index] !== path[index]) {
+        break
+      }
     }
+    if (index > 0) {
+      break
+    }
+  }
 
     // largest prefix
-    return str.slice(0, index);
+  return str.slice(0, index)
 }
 
 /**
@@ -79,91 +76,91 @@ function _getLargestPrefix(children, str) {
  * @param {function} onPartialMatch - the handler for partial matches
  * @param {function} onNoMatch - the handler for when no match is found
  */
-function _traverse(options) {
-    var node = options.node;
-    var str = options.str;
-    var onExactMatch = options.onExactMatch;
-    var onPartialMatch = options.onPartialMatch;
-    var onNoMatch = options.onNoMatch;
-    var onPlaceholder = options.onPlaceholder;
-    var data = options.data;
+function _traverse (options) {
+  var node = options.node
+  var str = options.str
+  var onExactMatch = options.onExactMatch
+  var onPartialMatch = options.onPartialMatch
+  var onNoMatch = options.onNoMatch
+  var onPlaceholder = options.onPlaceholder
+  var data = options.data
 
-    var children = node.children;
-    var childNode;
+  var children = node.children
+  var childNode
 
     // check if a child is possibly a placeholder or a wildcard
     // if wildcard is found, use it as a backup if no result is found,
     // if placeholder is found, grab the data and traverse
-    var wildcardNode = null;
-    if (onPlaceholder) {
-        for (var i = 0; i < children.length; i++) {
-            childNode = children[i];
-            if (children[i].type === WILDCARD_NODE) {
-                wildcardNode = childNode;
-            } else if (children[i].type === PLACEHOLDER_NODE) {
-                var key = childNode.path.slice(1);
-                var slashIndex = str.indexOf('/');
+  var wildcardNode = null
+  if (onPlaceholder) {
+    for (var i = 0; i < children.length; i++) {
+      childNode = children[i]
+      if (children[i].type === WILDCARD_NODE) {
+        wildcardNode = childNode
+      } else if (children[i].type === PLACEHOLDER_NODE) {
+        var key = childNode.path.slice(1)
+        var slashIndex = str.indexOf('/')
 
-                var param;
-                if (slashIndex !== -1) {
-                    param = str.slice(0, slashIndex);
-                } else {
-                    param = str;
-                }
-
-                options.node = children[i];
-                options.str = str.slice(param.length);
-
-                return onPlaceholder({
-                    key: key,
-                    param: param,
-                    data: data,
-                    options: options,
-                    childNode: childNode
-                });
-            }
+        var param
+        if (slashIndex !== -1) {
+          param = str.slice(0, slashIndex)
+        } else {
+          param = str
         }
-    }
 
-    var prefix = _getLargestPrefix(children, str);
+        options.node = children[i]
+        options.str = str.slice(param.length)
+
+        return onPlaceholder({
+          key: key,
+          param: param,
+          data: data,
+          options: options,
+          childNode: childNode
+        })
+      }
+    }
+  }
+
+  var prefix = _getLargestPrefix(children, str)
 
     // no matches, return null
-    if (prefix.length === 0) {
-        return onNoMatch(options) || wildcardNode;
-    }
+  if (prefix.length === 0) {
+    return onNoMatch(options) || wildcardNode
+  }
 
     // exact match with input string was found
-    if (prefix.length === str.length) {
-        return onExactMatch({
-            node: node,
-            prefix: prefix,
-            str: str,
-            data: data
-        }) || wildcardNode;
-    }
+  if (prefix.length === str.length) {
+    return onExactMatch({
+      node: node,
+      prefix: prefix,
+      str: str,
+      data: data
+    }) || wildcardNode
+  }
 
     // get child
-    childNode = _getChildNode(node, prefix);
+  childNode = _getChildNode(node, prefix)
     // child exists, continue traversing
-    if (childNode) {
-        options.node = childNode;
-        options.str = str.slice(prefix.length);
-        var result = _traverse(options);
+  if (childNode) {
+    options.node = childNode
+    options.str = str.slice(prefix.length)
+    var result = _traverse(options)
         // if no result, return the wildcard node
-        if (!result && wildcardNode) {
-            return wildcardNode;
-        } else {
-            return result;
-        }
+    if (!result && wildcardNode) {
+      return wildcardNode
+    } else {
+      return result
     }
+  }
 
     // partial match was found
-    return onPartialMatch({
-        node: node,
-        prefix: prefix,
-        str: str,
-        data: data
-    }) || wildcardNode;
+  return onPartialMatch({
+    node: node,
+    prefix: prefix,
+    str: str,
+    data: data
+  }) || wildcardNode
 }
 
 /**
@@ -173,92 +170,92 @@ function _traverse(options) {
  * @param {string} str - the string that is the base of the key
  * @param {object} map - the map to traverse the cobrowse event with
  */
-function _traverseDepths(node, str, array) {
-    if (node.data) {
-        array.push({
-            path: str,
-            data: node.data
-        });
-    }
+function _traverseDepths (node, str, array) {
+  if (node.data) {
+    array.push({
+      path: str,
+      data: node.data
+    })
+  }
 
-    node.children.forEach(function(child) {
-        _traverseDepths(child, str + child.path, array);
-    });
+  node.children.forEach(function (child) {
+    _traverseDepths(child, str + child.path, array)
+  })
 }
 
 /**
  * Helper function for creating a node based the path and data it is given
  */
-function _createNode(path, data) {
-    var node;
-    if (path[0] === ':') {
-        node = new Node(path, data, PLACEHOLDER_NODE);
-    } else if (path === '**') {
-        node = new Node(path, data, WILDCARD_NODE);
-    } else {
+function _createNode (path, data) {
+  var node
+  if (path[0] === ':') {
+    node = new Node(path, data, PLACEHOLDER_NODE)
+  } else if (path === '**') {
+    node = new Node(path, data, WILDCARD_NODE)
+  } else {
         // normal string to match
-        node = new Node(path, data);
-    }
-    return node;
+    node = new Node(path, data)
+  }
+  return node
 }
 
-function _buildNodeChain(str, data) {
-    var parentNode;
-    var currentNode;
-    var startingPoint = 0;
+function _buildNodeChain (str, data) {
+  var parentNode
+  var currentNode
+  var startingPoint = 0
 
     // if the string is just a single slash, return the node
     // otherwise just slash the node
-    if (str.length === 0 || str === '/') {
-        return new Node('/', data);
-    }
+  if (str.length === 0 || str === '/') {
+    return new Node('/', data)
+  }
 
-    var sections = str.split('/');
+  var sections = str.split('/')
     // first section is a special case, if it has real content, create a node
     // otherwise, create an empty node
-    if (sections[startingPoint].length > 0) {
-        parentNode = currentNode = _createNode(sections[startingPoint]);
-    } else {
-        parentNode = currentNode = new Node('');
-    }
-    startingPoint++;
+  if (sections[startingPoint].length > 0) {
+    parentNode = currentNode = _createNode(sections[startingPoint])
+  } else {
+    parentNode = currentNode = new Node('')
+  }
+  startingPoint++
 
-    for (var i = startingPoint; i < sections.length; i++) {
-        var parseRemaining = true;
-        var newNode;
+  for (var i = startingPoint; i < sections.length; i++) {
+    var parseRemaining = true
+    var newNode
 
         // add slash to last node if the last section was empty
-        if (i > 0 && sections[i - 1].length === 0){
-            currentNode.path += '/';
-        } else if (sections[i].length === 0) {
-            newNode = new Node('/');
-            parseRemaining = false;
-        } else {
-            var node = new Node('/');
-            currentNode.children.push(node);
-            node.parent = currentNode;
-            currentNode = node;
-        }
-
-        if (parseRemaining) {
-            var path = sections[i];
-            newNode = _createNode(path);
-        }
-
-        currentNode.children.push(newNode);
-        newNode.parent = currentNode;
-        currentNode = newNode;
+    if (i > 0 && sections[i - 1].length === 0) {
+      currentNode.path += '/'
+    } else if (sections[i].length === 0) {
+      newNode = new Node('/')
+      parseRemaining = false
+    } else {
+      var node = new Node('/')
+      currentNode.children.push(node)
+      node.parent = currentNode
+      currentNode = node
     }
+
+    if (parseRemaining) {
+      var path = sections[i]
+      newNode = _createNode(path)
+    }
+
+    currentNode.children.push(newNode)
+    newNode.parent = currentNode
+    currentNode = newNode
+  }
 
     // if the last node's path is empty, remove it.
-    if (currentNode.path === '') {
-        currentNode.parent.children = [];
-        currentNode.parent.data = data;
-    } else {
-        currentNode.data = data;
-    }
+  if (currentNode.path === '') {
+    currentNode.parent.children = []
+    currentNode.parent.data = data
+  } else {
+    currentNode.data = data
+  }
 
-    return parentNode;
+  return parentNode
 }
 
 /**
@@ -270,206 +267,202 @@ function _buildNodeChain(str, data) {
  * @param {string} str - the leftover parts of the input string
  * @param {object} data - the data to store in the new node
  */
-function _splitNode(node, prefix, str, data) {
-    var originalNode;
-    var oldIndex;
+function _splitNode (node, prefix, str, data) {
+  var originalNode
+  var oldIndex
 
-    var children = node.children;
-    for (var i = 0; i < children.length; i++) {
-        if (children[i].path.startsWith(prefix)) {
-            originalNode = children[i];
-            oldIndex = i;
-            break;
-        }
+  var children = node.children
+  for (var i = 0; i < children.length; i++) {
+    if (children[i].path.startsWith(prefix)) {
+      originalNode = children[i]
+      oldIndex = i
+      break
     }
+  }
 
-    var newLink = str.substring(prefix.length);
-    var oldLink = originalNode.path.substring(prefix.length);
+  var newLink = str.substring(prefix.length)
+  var oldLink = originalNode.path.substring(prefix.length)
 
     // set new path
-    originalNode.path = oldLink;
-    var newNode = _buildNodeChain(newLink, data);
-    var intermediateNode = new Node(prefix);
+  originalNode.path = oldLink
+  var newNode = _buildNodeChain(newLink, data)
+  var intermediateNode = new Node(prefix)
 
-    originalNode.parent = intermediateNode;
-    newNode.parent = intermediateNode;
-    intermediateNode.parent = node;
+  originalNode.parent = intermediateNode
+  newNode.parent = intermediateNode
+  intermediateNode.parent = node
 
-    intermediateNode.children.push(originalNode);
-    intermediateNode.children.push(newNode);
+  intermediateNode.children.push(originalNode)
+  intermediateNode.children.push(newNode)
 
-    node.children.push(intermediateNode);
+  node.children.push(intermediateNode)
 
     // remove old node the list of children
-    node.children.splice(oldIndex, 1);
-    return newNode;
+  node.children.splice(oldIndex, 1)
+  return newNode
 }
 
 // handle exact matches
 var EXACT_MATCH_HANDLERS = {
-    'insert': function(options) {
-        var node = options.node;
-        var prefix = options.prefix;
-        var str = options.str;
-        var data = options.data;
-        var childNode = _getChildNode(node, prefix);
-        childNode.data = data;
-        return node;
-    },
-    'delete': function(options) {
-        var parentNode = options.node;
-        var prefix = options.prefix;
-        var childNode = _getChildNode(parentNode, prefix);
-        if (childNode.children.length ===  0) {
+  'insert': function (options) {
+    var node = options.node
+    var prefix = options.prefix
+    var data = options.data
+    var childNode = _getChildNode(node, prefix)
+    childNode.data = data
+    return node
+  },
+  'delete': function (options) {
+    var parentNode = options.node
+    var prefix = options.prefix
+    var childNode = _getChildNode(parentNode, prefix)
+    if (childNode.children.length === 0) {
             // delete node from parent
-            for (var i = 0; i < parentNode.children.length; i++) {
-                if (parentNode.children[i].path === prefix) {
-                    break;
-                }
-            }
-            parentNode.children.splice(i, 1);
-        } else {
-            childNode.data = null;
+      for (var i = 0; i < parentNode.children.length; i++) {
+        if (parentNode.children[i].path === prefix) {
+          break
         }
-        return childNode;
-    },
-    'lookup': function(options) {
-        var node = options.node;
-        var prefix = options.prefix;
-        var discoveredNode = _getChildNode(node, prefix);
-        return discoveredNode;
-    },
-    'startsWith': function(options) {
-        var node = options.node;
-        var prefix = options.prefix;
-        var str = options.str;
-        var childNode = _getChildNode(node, prefix);
-        if (childNode) {
-            return childNode;
-        }
-        return _getAllPrefixChildren(node, prefix);
+      }
+      parentNode.children.splice(i, 1)
+    } else {
+      childNode.data = null
     }
-};
+    return childNode
+  },
+  'lookup': function (options) {
+    var node = options.node
+    var prefix = options.prefix
+    var discoveredNode = _getChildNode(node, prefix)
+    return discoveredNode
+  },
+  'startsWith': function (options) {
+    var node = options.node
+    var prefix = options.prefix
+    var childNode = _getChildNode(node, prefix)
+    if (childNode) {
+      return childNode
+    }
+    return _getAllPrefixChildren(node, prefix)
+  }
+}
 
 // handle situations where there is a partial match
 var PARTIAL_MATCH_HANDLERS = {
-    'insert': function(options) {
-        var node = options.node;
-        var prefix = options.prefix;
-        var str = options.str;
-        var data = options.data;
-        var newNode = _splitNode(node, prefix, str, data);
-        return newNode;
-    },
-    'delete': function() {
-        return null;
-    },
-    'lookup': function() {
-        return null;
-    },
-    'startsWith': function(options) {
-        var node = options.node;
-        var prefix = options.prefix;
-        return _getAllPrefixChildren(node, prefix);
-    }
-};
+  'insert': function (options) {
+    var node = options.node
+    var prefix = options.prefix
+    var str = options.str
+    var data = options.data
+    var newNode = _splitNode(node, prefix, str, data)
+    return newNode
+  },
+  'delete': function () {
+    return null
+  },
+  'lookup': function () {
+    return null
+  },
+  'startsWith': function (options) {
+    var node = options.node
+    var prefix = options.prefix
+    return _getAllPrefixChildren(node, prefix)
+  }
+}
 
 // handle situtations where there is no match
 var NO_MATCH_HANDLERS = {
-    'insert': function(options) {
-        var parentNode = options.node;
-        var prefix = options.prefix;
-        var str = options.str;
-        var data = options.data;
-        var newNode = _buildNodeChain(str, data);
-        parentNode.children.push(newNode);
-        newNode.parent = parentNode;
-        return newNode;
-    },
-    'delete': function() {
-        return null;
-    },
-    'lookup': function() {
-        return null;
-    },
-    'startsWith': function() {
-        return [];
-    }
-};
+  'insert': function (options) {
+    var parentNode = options.node
+    var str = options.str
+    var data = options.data
+    var newNode = _buildNodeChain(str, data)
+    parentNode.children.push(newNode)
+    newNode.parent = parentNode
+    return newNode
+  },
+  'delete': function () {
+    return null
+  },
+  'lookup': function () {
+    return null
+  },
+  'startsWith': function () {
+    return []
+  }
+}
 
-function _onPlaceholder(placeholderOptions) {
-    var options = placeholderOptions.options;
-    var childNode = options.node;
-    var parentNode = options.node.parent;
-    var str = options.str;
-    var data = options.data;
+function _onPlaceholder (placeholderOptions) {
+  var options = placeholderOptions.options
+  var childNode = options.node
+  var parentNode = options.node.parent
+  var str = options.str
+  var data = options.data
 
     // return the child node if there is nowhere else to go
     // otherwise, traverse to the child
-    if (options.str.length === 0) {
-        return options.onExactMatch({
-            node: parentNode,
-            prefix: childNode.path,
-            str: str,
-            data: data
-        });
-    }
-    return _traverse(options);
+  if (options.str.length === 0) {
+    return options.onExactMatch({
+      node: parentNode,
+      prefix: childNode.path,
+      str: str,
+      data: data
+    })
+  }
+  return _traverse(options)
 }
 
 // handle situations where a place holder was found
 var PLACEHOLDER_HANDLERS = {
     // lookup handles placeholders differently
-    'lookup': function(placeholderOptions) {
-        var key = placeholderOptions.key;
-        var param = placeholderOptions.param;
-        var options = placeholderOptions.options;
-        var data = options.data;
+  'lookup': function (placeholderOptions) {
+    var key = placeholderOptions.key
+    var param = placeholderOptions.param
+    var options = placeholderOptions.options
+    var data = options.data
 
-        if (!data.params) {
-            data.params = {};
-        }
-        data.params[key] = param;
+    if (!data.params) {
+      data.params = {}
+    }
+    data.params[key] = param
 
-        if (options.str.length === 0) {
-            return options.node;
-        }
+    if (options.str.length === 0) {
+      return options.node
+    }
 
-        return _traverse(options);
-    },
+    return _traverse(options)
+  },
     // inserts shouldn't care about placeholders at all
-    'insert': null,
-    'delete': _onPlaceholder,
-    'startsWith': _onPlaceholder
-};
+  'insert': null,
+  'delete': _onPlaceholder,
+  'startsWith': _onPlaceholder
+}
 
 /**
  * Helper method for retrieving all needed action handlers
  *
  * @param {string} action - the action to perform
  */
-function _getHandlers(action) {
-    return {
-        onExactMatch: EXACT_MATCH_HANDLERS[action],
-        onPartialMatch: PARTIAL_MATCH_HANDLERS[action],
-        onNoMatch: NO_MATCH_HANDLERS[action],
-        onPlaceholder: PLACEHOLDER_HANDLERS[action]
-    };
+function _getHandlers (action) {
+  return {
+    onExactMatch: EXACT_MATCH_HANDLERS[action],
+    onPartialMatch: PARTIAL_MATCH_HANDLERS[action],
+    onNoMatch: NO_MATCH_HANDLERS[action],
+    onPlaceholder: PLACEHOLDER_HANDLERS[action]
+  }
 }
 
-
-function _validateInput(input, strictPaths) {
-    var path = input;
-    if (typeof path !== 'string') {
-        throw new Error('Radix Tree input must be a string');
-    }
+function _validateInput (input, strictPaths) {
+  var path = input
+  if (typeof path !== 'string') {
+    throw new Error('Radix Tree input must be a string')
+  }
     // allow for trailing slashes to match by removing it
 
-    if (!strictPaths && path.length > 1 && path[path.length - 1] === '/') {
-        path = path.slice(0, path.length - 1);
-    }
+  if (!strictPaths && path.length > 1 && path[path.length - 1] === '/') {
+    path = path.slice(0, path.length - 1)
+  }
 
-    return path;
+  return path
 }
 
 /**
@@ -480,84 +473,83 @@ function _validateInput(input, strictPaths) {
  * @param {string} input - the string to use for traversal
  * @param {object} data - the object to store in the Radix Tree
  */
-function _startTraversal(rootNode, action, input, data) {
-    var handlers = _getHandlers(action);
-    return _traverse({
-        node: rootNode,
-        str: input,
-        onExactMatch: handlers.onExactMatch,
-        onPartialMatch: handlers.onPartialMatch,
-        onNoMatch: handlers.onNoMatch,
-        onPlaceholder: handlers.onPlaceholder,
-        data: data
-    });
+function _startTraversal (rootNode, action, input, data) {
+  var handlers = _getHandlers(action)
+  return _traverse({
+    node: rootNode,
+    str: input,
+    onExactMatch: handlers.onExactMatch,
+    onPartialMatch: handlers.onPartialMatch,
+    onNoMatch: handlers.onNoMatch,
+    onPlaceholder: handlers.onPlaceholder,
+    data: data
+  })
 }
 
 /**
  * Node of the Radix Tree
  * @constructor
  */
-function Node(path, data, type) {
-    this.type = type || NORMAL_NODE;
-    this.path = path;
-    this.parent = undefined;
-    this.children = [];
-    this.data = data || null;
+function Node (path, data, type) {
+  this.type = type || NORMAL_NODE
+  this.path = path
+  this.parent = undefined
+  this.children = []
+  this.data = data || null
 }
 
 /**
  * The Radix Router
  * @constructor
  */
-function RadixRouter(options) {
-    this._rootNode = new Node();
-    this._strictMode = !!options && options.strict;
+function RadixRouter (options) {
+  this._rootNode = new Node()
+  this._strictMode = !!options && options.strict
     // TODO: handle routes passed in via options
 }
 
-
 RadixRouter.prototype = {
-    lookup: function(input) {
-        var self = this;
-        var path = _validateInput(input, self._strictMode);
-        var result = {
-            path: input,
-            data: null
-        };
-        var node = _startTraversal(self._rootNode, 'lookup', path, result);
-        result.data = node ? node.data : null;
-        return result;
-    },
-
-    startsWith: function(prefix) {
-        var self = this;
-        _validateInput(prefix, self._strictMode);
-        var result = _startTraversal(self._rootNode, 'startsWith', prefix);
-
-        var resultArray = [];
-        if (result instanceof Node) {
-            _traverseDepths(result, prefix, resultArray);
-        } else {
-            result.forEach(function(child) {
-                _traverseDepths(child,
-                    prefix.substring(0, prefix.indexOf(child.path[0])) + child.path,
-                    resultArray);
-            });
-        }
-        return resultArray;
-    },
-
-    insert: function(input, data) {
-        var self = this;
-        var path = _validateInput(input, self._strictMode);
-        return _startTraversal(self._rootNode, 'insert', path, data);
-    },
-
-    delete: function(input) {
-        var self = this;
-        var path = _validateInput(input, self._strictMode);
-        return _startTraversal(self._rootNode, 'delete', path);
+  lookup: function (input) {
+    var self = this
+    var path = _validateInput(input, self._strictMode)
+    var result = {
+      path: input,
+      data: null
     }
-};
+    var node = _startTraversal(self._rootNode, 'lookup', path, result)
+    result.data = node ? node.data : null
+    return result
+  },
 
-module.exports = RadixRouter;
+  startsWith: function (prefix) {
+    var self = this
+    _validateInput(prefix, self._strictMode)
+    var result = _startTraversal(self._rootNode, 'startsWith', prefix)
+
+    var resultArray = []
+    if (result instanceof Node) {
+      _traverseDepths(result, prefix, resultArray)
+    } else {
+      result.forEach(function (child) {
+        _traverseDepths(child,
+                    prefix.substring(0, prefix.indexOf(child.path[0])) + child.path,
+                    resultArray)
+      })
+    }
+    return resultArray
+  },
+
+  insert: function (input, data) {
+    var self = this
+    var path = _validateInput(input, self._strictMode)
+    return _startTraversal(self._rootNode, 'insert', path, data)
+  },
+
+  delete: function (input) {
+    var self = this
+    var path = _validateInput(input, self._strictMode)
+    return _startTraversal(self._rootNode, 'delete', path)
+  }
+}
+
+module.exports = RadixRouter
