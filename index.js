@@ -18,7 +18,7 @@ function _getAllPrefixChildren (node, str) {
   var nodes = []
   var children = node.children
   for (var i = 0; i < children.length; i++) {
-        // only need to check for first char
+    // only need to check for first char
     if (children[i].path[0] === str[0]) {
       nodes.push(children[i])
     }
@@ -88,9 +88,9 @@ function _traverse (options) {
   var children = node.children
   var childNode
 
-    // check if a child is possibly a placeholder or a wildcard
-    // if wildcard is found, use it as a backup if no result is found,
-    // if placeholder is found, grab the data and traverse
+  // check if a child is possibly a placeholder or a wildcard
+  // if wildcard is found, use it as a backup if no result is found,
+  // if placeholder is found, grab the data and traverse
   var wildcardNode = null
   if (onPlaceholder) {
     for (var i = 0; i < children.length; i++) {
@@ -124,12 +124,12 @@ function _traverse (options) {
 
   var prefix = _getLargestPrefix(children, str)
 
-    // no matches, return null
+  // no matches, return null
   if (prefix.length === 0) {
     return onNoMatch(options) || wildcardNode
   }
 
-    // exact match with input string was found
+  // exact match with input string was found
   if (prefix.length === str.length) {
     return onExactMatch({
       node: node,
@@ -139,14 +139,15 @@ function _traverse (options) {
     }) || wildcardNode
   }
 
-    // get child
+  // get child
   childNode = _getChildNode(node, prefix)
-    // child exists, continue traversing
+
+  // child exists, continue traversing
   if (childNode) {
     options.node = childNode
     options.str = str.slice(prefix.length)
     var result = _traverse(options)
-        // if no result, return the wildcard node
+    // if no result, return the wildcard node
     if (!result && wildcardNode) {
       return wildcardNode
     } else {
@@ -154,7 +155,7 @@ function _traverse (options) {
     }
   }
 
-    // partial match was found
+  // partial match was found
   return onPartialMatch({
     node: node,
     prefix: prefix,
@@ -193,7 +194,7 @@ function _createNode (path, data) {
   } else if (path === '**') {
     node = new Node(path, data, WILDCARD_NODE)
   } else {
-        // normal string to match
+    // normal string to match
     node = new Node(path, data)
   }
   return node
@@ -204,15 +205,16 @@ function _buildNodeChain (str, data) {
   var currentNode
   var startingPoint = 0
 
-    // if the string is just a single slash, return the node
-    // otherwise just slash the node
+  // if the string is just a single slash, return the node
+  // otherwise just slash the node
   if (str.length === 0 || str === '/') {
     return new Node('/', data)
   }
 
   var sections = str.split('/')
-    // first section is a special case, if it has real content, create a node
-    // otherwise, create an empty node
+
+  // first section is a special case, if it has real content, create a node
+  // otherwise, create an empty node
   if (sections[startingPoint].length > 0) {
     parentNode = currentNode = _createNode(sections[startingPoint])
   } else {
@@ -224,7 +226,7 @@ function _buildNodeChain (str, data) {
     var parseRemaining = true
     var newNode
 
-        // add slash to last node if the last section was empty
+    // add slash to last node if the last section was empty
     if (i > 0 && sections[i - 1].length === 0) {
       currentNode.path += '/'
     } else if (sections[i].length === 0) {
@@ -247,7 +249,7 @@ function _buildNodeChain (str, data) {
     currentNode = newNode
   }
 
-    // if the last node's path is empty, remove it.
+  // if the last node's path is empty, remove it.
   if (currentNode.path === '') {
     currentNode.parent.children = []
     currentNode.parent.data = data
@@ -283,7 +285,7 @@ function _splitNode (node, prefix, str, data) {
   var newLink = str.substring(prefix.length)
   var oldLink = originalNode.path.substring(prefix.length)
 
-    // set new path
+  // set new path
   originalNode.path = oldLink
   var newNode = _buildNodeChain(newLink, data)
   var intermediateNode = new Node(prefix)
@@ -297,7 +299,7 @@ function _splitNode (node, prefix, str, data) {
 
   node.children.push(intermediateNode)
 
-    // remove old node the list of children
+  // remove old node the list of children
   node.children.splice(oldIndex, 1)
   return newNode
 }
@@ -317,7 +319,7 @@ var EXACT_MATCH_HANDLERS = {
     var prefix = options.prefix
     var childNode = _getChildNode(parentNode, prefix)
     if (childNode.children.length === 0) {
-            // delete node from parent
+      // delete node from parent
       for (var i = 0; i < parentNode.children.length; i++) {
         if (parentNode.children[i].path === prefix) {
           break
@@ -413,7 +415,7 @@ function _onPlaceholder (placeholderOptions) {
 
 // handle situations where a place holder was found
 var PLACEHOLDER_HANDLERS = {
-    // lookup handles placeholders differently
+  // lookup handles placeholders differently
   'lookup': function (placeholderOptions) {
     var key = placeholderOptions.key
     var param = placeholderOptions.param
@@ -431,7 +433,8 @@ var PLACEHOLDER_HANDLERS = {
 
     return _traverse(options)
   },
-    // inserts shouldn't care about placeholders at all
+
+  // inserts shouldn't care about placeholders at all
   'insert': null,
   'delete': _onPlaceholder,
   'startsWith': _onPlaceholder
@@ -456,8 +459,8 @@ function _validateInput (input, strictPaths) {
   if (typeof path !== 'string') {
     throw new Error('Radix Tree input must be a string')
   }
-    // allow for trailing slashes to match by removing it
 
+  // allow for trailing slashes to match by removing it
   if (!strictPaths && path.length > 1 && path[path.length - 1] === '/') {
     path = path.slice(0, path.length - 1)
   }
@@ -505,7 +508,7 @@ function Node (path, data, type) {
 function RadixRouter (options) {
   this._rootNode = new Node()
   this._strictMode = !!options && options.strict
-    // TODO: handle routes passed in via options
+  // TODO: handle routes passed in via options
 }
 
 RadixRouter.prototype = {
@@ -532,8 +535,8 @@ RadixRouter.prototype = {
     } else {
       result.forEach(function (child) {
         _traverseDepths(child,
-                    prefix.substring(0, prefix.indexOf(child.path[0])) + child.path,
-                    resultArray)
+          prefix.substring(0, prefix.indexOf(child.path[0])) + child.path,
+          resultArray)
       })
     }
     return resultArray

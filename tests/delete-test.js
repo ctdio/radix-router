@@ -1,9 +1,9 @@
-const {expect} = require('chai')
-const RadixRouter = require('../index')
+var expect = require('chai').expect
+var RadixRouter = require('../index')
 
-describe('Router delete', () => {
-  it('should be able to delete nodes', () => {
-    let router = new RadixRouter()
+describe('Router delete', function () {
+  it('should be able to delete nodes', function () {
+    var router = new RadixRouter()
     router.insert('hello', 1)
     router.insert('cool', 2)
     router.insert('hi', 3)
@@ -31,8 +31,8 @@ describe('Router delete', () => {
     })
   })
 
-  it('should be able to delete placeholder routes', () => {
-    let router = new RadixRouter()
+  it('should be able to delete placeholder routes', function () {
+    var router = new RadixRouter()
     router.insert('placeholder/:choo', 8)
     router.insert('placeholder/:choo/:choo2', 8)
 
@@ -65,8 +65,8 @@ describe('Router delete', () => {
     })
   })
 
-  it('should be able to delete wildcard routes', () => {
-    let router = new RadixRouter()
+  it('should be able to delete wildcard routes', function () {
+    var router = new RadixRouter()
     router.insert('ui/**', 9)
     router.insert('ui/components/**', 10)
     expect(router.lookup('ui/components/snackbars')).to.deep.equal({

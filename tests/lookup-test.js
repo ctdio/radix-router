@@ -1,9 +1,9 @@
-const {expect} = require('chai')
-const RadixRouter = require('../index')
+var expect = require('chai').expect
+var RadixRouter = require('../index')
 
-describe('Router lookup', () => {
-  it('should be able lookup static routes', () => {
-    let router = new RadixRouter()
+describe('Router lookup', function () {
+  it('should be able lookup static routes', function () {
+    var router = new RadixRouter()
 
     router.insert('/', true)
     router.insert('/route', true)
@@ -29,8 +29,8 @@ describe('Router lookup', () => {
     })
   })
 
-  it('should be able to retrieve placeholders', () => {
-    let router = new RadixRouter()
+  it('should be able to retrieve placeholders', function () {
+    var router = new RadixRouter()
     router.insert('carbon/:element', 14)
     router.insert('carbon/:element/test/:testing', 15)
     router.insert('this/:route/has/:cool/stuff', 16)
@@ -67,8 +67,8 @@ describe('Router lookup', () => {
     })
   })
 
-  it('should be able to perform wildcard lookups', () => {
-    let router = new RadixRouter()
+  it('should be able to perform wildcard lookups', function () {
+    var router = new RadixRouter()
 
     router.insert('polymer/**', 12)
     router.insert('polymer/another/route', 13)
@@ -89,8 +89,8 @@ describe('Router lookup', () => {
     })
   })
 
-  it('should be able to match routes with trailing slash', () => {
-    let router = new RadixRouter()
+  it('should be able to match routes with trailing slash', function () {
+    var router = new RadixRouter()
 
     router.insert('route/without/trailing/slash', true)
     router.insert('route/with/trailing/slash/', true)
@@ -116,8 +116,8 @@ describe('Router lookup', () => {
     })
   })
 
-  it('should not match routes with trailing slash if router is created with strict mode', () => {
-    let router = new RadixRouter({
+  it('should not match routes with trailing slash if router is created with strict mode', function () {
+    var router = new RadixRouter({
       strict: true
     })
 
