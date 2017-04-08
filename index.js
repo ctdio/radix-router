@@ -541,12 +541,11 @@ RadixRouter.prototype = {
   lookup: function (path) {
     var self = this
     path = _validateInput(path, self._strictMode)
-    let data = {}
+    var data = {}
 
     // find the node
-    let node = _startTraversal(self._rootNode, 'lookup', path, data)
-
-    let result = node && node.data
+    var node = _startTraversal(self._rootNode, 'lookup', path, data)
+    var result = node && node.data
 
     if (result && data.params) {
       result.params = data.params

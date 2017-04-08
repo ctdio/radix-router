@@ -74,7 +74,7 @@ describe('Router delete', function () {
     var router = new RadixRouter()
     _putRoute(router, '/some/route', 1)
 
-    let deleteResult = router.delete('/some/route')
+    var deleteResult = router.delete('/some/route')
     expect(deleteResult).to.equal(true)
 
     // route should no longer exist

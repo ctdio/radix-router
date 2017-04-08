@@ -49,7 +49,7 @@ router.insert({
 ```
 const RadixRouter = require('radix-router');
 
-let router = new RadixRouter({
+const router = new RadixRouter({
     strict: true
 });
 
