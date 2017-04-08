@@ -23,7 +23,20 @@ Possible parameters for the `options` object:
 
 - `strict` - Setting this option to `true` will force lookups to match exact paths (trailing slashes will not be ignored). Defaults to `false`.
 
-`insert(path, data)` - Adds the given path to the router and associates the given data with the path.
+`insert(routeData)` - Adds the given path to the router and associates the given data with the path.
+
+Example input:
+```js
+router.insert({
+  path: '/my/path', // required
+  // any addition data goes here
+  extraData: 'anything can be added',
+  handler: function (req, res) {
+    // ...
+  }
+})
+```
+
 
 `lookup(path)` - Performs a lookup of the path. If there is a match, the data associated with the route is returned.
 
@@ -40,42 +53,39 @@ let router = new RadixRouter({
     strict: true
 });
 
-router.insert('/api/v1/route', {
-    much: 'data'
+router.insert({
+  path: '/api/v1/route',
+  much: 'data'
 });
 
-router.insert('/api/v2/**', {
-    such: 'wildcard'
+router.insert(
+  path: '/api/v2/**',
+  such: 'wildcard'
 });
 
-router.insert('/api/v1/other-route/:id', {
-    so: 'placeholder',
-    much: 'wow'
+router.insert({
+  path: '/api/v1/other-route/:id',
+  so: 'placeholder',
+  much: 'wow'
 });
 
 router.lookup('/api/v1/route');
 // returns {
 //     path: '/api/v1/route',
-//     data: {
-//         much: 'data'
-//     }
+//     much: 'data'
 // }
 
 router.lookup('/api/v2/anything/goes/here');
 // returns {
-//     path: '/api/v2/anything/goes/here',
-//     data: {
-//         such: 'wildcard'
-//     }
+//     path: '/api/v2/**',
+//     such: 'wildcard'
 // }
 
 router.lookup('/api/v1/other-route/abcd');
 // returns {
-//     path: '/api/v1/other-route/abcd',
-//     data: {
-//         so: 'placeholder',
-//         much: 'wow'
-//     },
+//     path: '/api/v1/other-route/:id',
+//     so: 'placeholder',
+//     much: 'wow'
 //     params: {
 //         id: 'abcd'
 //     }
@@ -84,11 +94,9 @@ router.lookup('/api/v1/other-route/abcd');
 // remove route
 router.delete('/api/v2/**');
 
+// misses will return null
 router.lookup('/api/v2/anything/goes/here');
-// returns {
-//     path: '/api/v2/anything/goes/here',
-//     data: null
-// }
+// returns null
 
 route.startsWith('/api')
 // returns {

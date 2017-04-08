@@ -1,5 +1,6 @@
 var expect = require('chai').expect
 var RadixRouter = require('../index')
+var _putRoute = require('./util/putRoute')
 
 function containsPath (array, path) {
   for (var i = 0; i < array.length; i++) {
@@ -13,12 +14,12 @@ function containsPath (array, path) {
 describe('Router startsWith', function () {
   it('should be able retrieve all results via prefix', function () {
     var router = new RadixRouter()
-    router.insert('hello', 1)
-    router.insert('hi', 2)
-    router.insert('helium', 3)
-    router.insert('chrome', 6)
-    router.insert('choot', 7)
-    router.insert('chromium', 8)
+    _putRoute(router, 'hello', 1)
+    _putRoute(router, 'hi', 2)
+    _putRoute(router, 'helium', 3)
+    _putRoute(router, 'chrome', 6)
+    _putRoute(router, 'choot', 7)
+    _putRoute(router, 'chromium', 8)
     var setA = router.startsWith('h')
     expect(setA.length).to.equal(3)
     expect(containsPath(setA, 'hello')).to.equal(true)

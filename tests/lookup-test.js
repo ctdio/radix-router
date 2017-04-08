@@ -1,14 +1,15 @@
 var expect = require('chai').expect
 var RadixRouter = require('../index')
+var _putRoute = require('./util/putRoute')
 
 describe('Router lookup', function () {
   it('should be able lookup static routes', function () {
     var router = new RadixRouter()
 
-    router.insert('/', true)
-    router.insert('/route', true)
-    router.insert('/another-route', true)
-    router.insert('/this/is/yet/another/route', true)
+    _putRoute(router, '/', true)
+    _putRoute(router, '/route', true)
+    _putRoute(router, '/another-route', true)
+    _putRoute(router, '/this/is/yet/another/route', true)
 
     expect(router.lookup('/')).to.deep.equal({
       path: '/',
@@ -31,26 +32,26 @@ describe('Router lookup', function () {
 
   it('should be able to retrieve placeholders', function () {
     var router = new RadixRouter()
-    router.insert('carbon/:element', 14)
-    router.insert('carbon/:element/test/:testing', 15)
-    router.insert('this/:route/has/:cool/stuff', 16)
+    _putRoute(router, 'carbon/:element', 14)
+    _putRoute(router, 'carbon/:element/test/:testing', 15)
+    _putRoute(router, 'this/:route/has/:cool/stuff', 16)
 
     expect(router.lookup('carbon/test1')).to.deep.equal({
-      path: 'carbon/test1',
+      path: 'carbon/:element',
       data: 14,
       params: {
         'element': 'test1'
       }
     })
     expect(router.lookup('carbon/test1')).to.deep.equal({
-      path: 'carbon/test1',
+      path: 'carbon/:element',
       data: 14,
       params: {
         'element': 'test1'
       }
     })
     expect(router.lookup('carbon/test2/test/test23')).to.deep.equal({
-      path: 'carbon/test2/test/test23',
+      path: 'carbon/:element/test/:testing',
       data: 15,
       params: {
         'element': 'test2',
@@ -58,7 +59,7 @@ describe('Router lookup', function () {
       }
     })
     expect(router.lookup('this/test/has/more/stuff')).to.deep.equal({
-      path: 'this/test/has/more/stuff',
+      path: 'this/:route/has/:cool/stuff',
       data: 16,
       params: {
         route: 'test',
@@ -70,8 +71,8 @@ describe('Router lookup', function () {
   it('should be able to perform wildcard lookups', function () {
     var router = new RadixRouter()
 
-    router.insert('polymer/**', 12)
-    router.insert('polymer/another/route', 13)
+    _putRoute(router, 'polymer/**', 12)
+    _putRoute(router, 'polymer/another/route', 13)
 
     expect(router.lookup('polymer/another/route')).to.deep.equal({
       path: 'polymer/another/route',
@@ -79,12 +80,12 @@ describe('Router lookup', function () {
     })
 
     expect(router.lookup('polymer/anon')).to.deep.equal({
-      path: 'polymer/anon',
+      path: 'polymer/**',
       data: 12
     })
 
     expect(router.lookup('polymer/2415')).to.deep.equal({
-      path: 'polymer/2415',
+      path: 'polymer/**',
       data: 12
     })
   })
@@ -92,8 +93,8 @@ describe('Router lookup', function () {
   it('should be able to match routes with trailing slash', function () {
     var router = new RadixRouter()
 
-    router.insert('route/without/trailing/slash', true)
-    router.insert('route/with/trailing/slash/', true)
+    _putRoute(router, 'route/without/trailing/slash', true)
+    _putRoute(router, 'route/with/trailing/slash/', true)
 
     expect(router.lookup('route/without/trailing/slash')).to.deep.equal({
       path: 'route/without/trailing/slash',
@@ -101,12 +102,12 @@ describe('Router lookup', function () {
     })
 
     expect(router.lookup('route/without/trailing/slash/')).to.deep.equal({
-      path: 'route/without/trailing/slash/',
+      path: 'route/without/trailing/slash',
       data: true
     })
 
     expect(router.lookup('route/with/trailing/slash')).to.deep.equal({
-      path: 'route/with/trailing/slash',
+      path: 'route/with/trailing/slash/',
       data: true
     })
 
@@ -121,12 +122,12 @@ describe('Router lookup', function () {
       strict: true
     })
 
-    router.insert('/', 1)
-    router.insert('//', 2)
-    router.insert('///', 3)
-    router.insert('////', 4)
-    router.insert('route/without/trailing/slash', true)
-    router.insert('route/with/trailing/slash/', true)
+    _putRoute(router, '/', 1)
+    _putRoute(router, '//', 2)
+    _putRoute(router, '///', 3)
+    _putRoute(router, '////', 4)
+    _putRoute(router, 'route/without/trailing/slash', true)
+    _putRoute(router, 'route/with/trailing/slash/', true)
 
     expect(router.lookup('/')).to.deep.equal({
       path: '/',
@@ -147,21 +148,14 @@ describe('Router lookup', function () {
       path: '////',
       data: 4
     })
+
     expect(router.lookup('route/without/trailing/slash')).to.deep.equal({
       path: 'route/without/trailing/slash',
       data: true
     })
 
-    expect(router.lookup('route/without/trailing/slash/')).to.deep.equal({
-      path: 'route/without/trailing/slash/',
-      data: null
-    })
-
-    expect(router.lookup('route/with/trailing/slash')).to.deep.equal({
-      path: 'route/with/trailing/slash',
-      data: null
-    })
-
+    expect(router.lookup('route/without/trailing/slash/')).to.deep.equal(null)
+    expect(router.lookup('route/with/trailing/slash')).to.deep.equal(null)
     expect(router.lookup('route/with/trailing/slash/')).to.deep.equal({
       path: 'route/with/trailing/slash/',
       data: true

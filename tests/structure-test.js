@@ -1,6 +1,6 @@
 var expect = require('chai').expect
-
 var RadixRouter = require('../index')
+var _putRoute = require('./util/putRoute')
 
 function getChild (node, prefix) {
   for (var i = 0; i < node.children.length; i++) {
@@ -17,13 +17,13 @@ var PLACEHOLDER_TYPE = 2
 describe('Router tree structure', function () {
   it('should be able to insert nodes correctly into the tree', function () {
     var router = new RadixRouter()
-    router.insert('hello')
-    router.insert('cool')
-    router.insert('hi')
-    router.insert('helium')
-    router.insert('coooool')
-    router.insert('chrome')
-    router.insert('choot')
+    _putRoute(router, 'hello')
+    _putRoute(router, 'cool')
+    _putRoute(router, 'hi')
+    _putRoute(router, 'helium')
+    _putRoute(router, 'coooool')
+    _putRoute(router, 'chrome')
+    _putRoute(router, 'choot')
     /**
      * Expected structure:
      *            root
@@ -58,8 +58,8 @@ describe('Router tree structure', function () {
 
   it('insert placeholder and wildcard nodes correctly into the tree', function () {
     var router = new RadixRouter()
-    router.insert('hello/:placeholder/tree')
-    router.insert('choot/choo/**')
+    _putRoute(router, 'hello/:placeholder/tree')
+    _putRoute(router, 'choot/choo/**')
 
     var helloNode = getChild(router._rootNode, 'hello')
     var helloSlashNode = getChild(helloNode, '/')

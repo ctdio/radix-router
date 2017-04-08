@@ -114,7 +114,6 @@ function _traverse (options) {
         return onPlaceholder({
           key: key,
           param: param,
-          data: data,
           options: options,
           childNode: childNode
         })
@@ -512,15 +511,23 @@ function RadixRouter (options) {
 }
 
 RadixRouter.prototype = {
-  lookup: function (input) {
+  lookup: function (path) {
     var self = this
-    var path = _validateInput(input, self._strictMode)
-    var result = {
-      path: input,
-      data: null
+    path = _validateInput(path, self._strictMode)
+
+    let data = {
+      params: null
     }
-    var node = _startTraversal(self._rootNode, 'lookup', path, result)
-    result.data = node ? node.data : null
+
+    // find the node
+    let node = _startTraversal(self._rootNode, 'lookup', path, data)
+
+    let result = node && node.data
+
+    if (result && data.params) {
+      result.params = data.params
+    }
+
     return result
   },
 
@@ -542,10 +549,16 @@ RadixRouter.prototype = {
     return resultArray
   },
 
-  insert: function (input, data) {
+  insert: function (data) {
     var self = this
-    var path = _validateInput(input, self._strictMode)
-    return _startTraversal(self._rootNode, 'insert', path, data)
+    let path = data.path
+
+    if (path) {
+      path = _validateInput(path, self._strictMode)
+      return _startTraversal(self._rootNode, 'insert', path, data)
+    } else {
+      throw new Error('"path" must be specified an option')
+    }
   },
 
   delete: function (input) {
