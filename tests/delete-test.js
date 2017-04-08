@@ -69,4 +69,19 @@ describe('Router delete', function () {
       data: 9
     })
   })
+
+  it('should return an result signifying that the delete operation was successful or not', function () {
+    var router = new RadixRouter()
+    _putRoute(router, '/some/route', 1)
+
+    let deleteResult = router.delete('/some/route')
+    expect(deleteResult).to.equal(true)
+
+    // route should no longer exist
+    deleteResult = router.delete('/some/route')
+    expect(deleteResult).to.equal(false)
+
+    deleteResult = router.delete('/some/route/that/never/existed')
+    expect(deleteResult).to.equal(false)
+  })
 })

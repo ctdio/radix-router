@@ -314,7 +314,14 @@ var EXACT_MATCH_HANDLERS = {
   'delete': function (options) {
     var parentNode = options.node
     var prefix = options.prefix
+    var result = options.data
+
     var childNode = _getChildNode(parentNode, prefix)
+
+    if (childNode.data) {
+      result.success = true
+    }
+
     if (childNode.children.length === 0) {
       // delete node from parent
       for (var i = 0; i < parentNode.children.length; i++) {
@@ -326,6 +333,7 @@ var EXACT_MATCH_HANDLERS = {
     } else {
       childNode.data = null
     }
+
     return childNode
   },
   'lookup': function (options) {
@@ -509,6 +517,12 @@ function RadixRouter (options) {
 }
 
 RadixRouter.prototype = {
+  /**
+   * Perform lookup of given path in radix tree
+   * @param { string } path - the path to search for
+   *
+   * @returns { object } The data that was originally inserted into the tree
+   */
   lookup: function (path) {
     var self = this
     path = _validateInput(path, self._strictMode)
@@ -529,6 +543,13 @@ RadixRouter.prototype = {
     return result
   },
 
+  /**
+   * Perform lookup of all paths that start with the given prefix
+   * @param { string } prefix - the prefix to match
+   *
+   * @returns { object[] } An array of matches along with any data that
+   * was originally passed in when inserted
+   */
   startsWith: function (prefix) {
     var self = this
     _validateInput(prefix, self._strictMode)
@@ -547,22 +568,38 @@ RadixRouter.prototype = {
     return resultArray
   },
 
+  /**
+   * Perform an insert into the radix tree
+   * @param { string } data.path - the prefix to match
+   *
+   * Note: any other params attached to the data object will
+   * also be added into the tree
+   */
   insert: function (data) {
     var self = this
-    let path = data.path
+    var path = data.path
 
     if (path) {
       path = _validateInput(path, self._strictMode)
-      return _startTraversal(self._rootNode, 'insert', path, data)
+      _startTraversal(self._rootNode, 'insert', path, data)
     } else {
       throw new Error('"path" must be specified an option')
     }
   },
 
+  /**
+   * Perform a delete on the tree
+   * @param { string } data.path - the route to match
+   *
+   * @returns { boolean }  A boolean signifying if the delete was
+   * successful or not
+   */
   delete: function (input) {
     var self = this
     var path = _validateInput(input, self._strictMode)
-    return _startTraversal(self._rootNode, 'delete', path)
+    var result = { success: false }
+    _startTraversal(self._rootNode, 'delete', path, result)
+    return result.success
   }
 }
 
