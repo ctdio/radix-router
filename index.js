@@ -330,6 +330,21 @@ var EXACT_MATCH_HANDLERS = {
         }
       }
       parentNode.children.splice(i, 1)
+
+      if (parentNode.children.length === 1) {
+        var lastChildNode = parentNode.children[0]
+        if (parentNode.data && Object.keys(parentNode.data).length === 1) {
+          // no real data is associated with the parent
+          if (parentNode.type === NORMAL_NODE && parentNode.path !== '/' &&
+            lastChildNode.type === NORMAL_NODE && lastChildNode.path !== '/') {
+            // child node just a regular node, merge them together
+            parentNode.children = []
+            parentNode.path += lastChildNode.path
+            parentNode.data = lastChildNode.data
+            parentNode.data.path = parentNode.path
+          }
+        }
+      }
     } else {
       childNode.data = null
     }
@@ -526,10 +541,7 @@ RadixRouter.prototype = {
   lookup: function (path) {
     var self = this
     path = _validateInput(path, self._strictMode)
-
-    let data = {
-      params: null
-    }
+    let data = {}
 
     // find the node
     let node = _startTraversal(self._rootNode, 'lookup', path, data)
@@ -573,7 +585,7 @@ RadixRouter.prototype = {
    * @param { string } data.path - the prefix to match
    *
    * Note: any other params attached to the data object will
-   * also be added into the tree
+   * also be inserted as part of the node's data
    */
   insert: function (data) {
     var self = this
