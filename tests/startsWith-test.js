@@ -2,9 +2,9 @@ var expect = require('chai').expect
 var RadixRouter = require('../index')
 var _putRoute = require('./util/putRoute')
 
-function containsPath (array, path) {
+function containsPath (array, path, data) {
   for (var i = 0; i < array.length; i++) {
-    if (array[i].path === path) {
+    if (array[i].path === path && array[i].data === data) {
       return true
     }
   }
@@ -20,15 +20,16 @@ describe('Router startsWith', function () {
     _putRoute(router, 'chrome', 6)
     _putRoute(router, 'choot', 7)
     _putRoute(router, 'chromium', 8)
+
     var setA = router.startsWith('h')
     expect(setA.length).to.equal(3)
-    expect(containsPath(setA, 'hello')).to.equal(true)
-    expect(containsPath(setA, 'hi')).to.equal(true)
-    expect(containsPath(setA, 'helium')).to.equal(true)
+    expect(containsPath(setA, 'hello', 1)).to.equal(true)
+    expect(containsPath(setA, 'hi', 2)).to.equal(true)
+    expect(containsPath(setA, 'helium', 3)).to.equal(true)
 
     var setB = router.startsWith('c')
-    expect(containsPath(setB, 'chrome')).to.equal(true)
-    expect(containsPath(setB, 'choot')).to.equal(true)
-    expect(containsPath(setB, 'chromium')).to.equal(true)
+    expect(containsPath(setB, 'chrome', 6)).to.equal(true)
+    expect(containsPath(setB, 'choot', 7)).to.equal(true)
+    expect(containsPath(setB, 'chromium', 8)).to.equal(true)
   })
 })

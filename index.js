@@ -53,10 +53,11 @@ function _getLargestPrefix (children, str) {
   for (var i = 0; i < children.length; i++) {
     var path = children[i].path
     var totalIterations = Math.min(str.length, path.length)
-    for (; index < totalIterations; index++) {
+    while (index < totalIterations) {
       if (str[index] !== path[index]) {
         break
       }
+      index++
     }
     if (index > 0) {
       break
@@ -172,10 +173,7 @@ function _traverse (options) {
  */
 function _traverseDepths (node, str, array) {
   if (node.data) {
-    array.push({
-      path: str,
-      data: node.data
-    })
+    array.push(node.data)
   }
 
   node.children.forEach(function (child) {

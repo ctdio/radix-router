@@ -29,7 +29,7 @@ Example input:
 ```js
 router.insert({
   path: '/my/path', // required
-  // any addition data goes here
+  // any additional data goes here
   extraData: 'anything can be added',
   handler: function (req, res) {
     // ...
@@ -71,41 +71,42 @@ router.insert({
 
 router.lookup('/api/v1/route');
 // returns {
-//     path: '/api/v1/route',
-//     much: 'data'
+//   path: '/api/v1/route',
+//   much: 'data'
 // }
 
 router.lookup('/api/v2/anything/goes/here');
 // returns {
-//     path: '/api/v2/**',
-//     such: 'wildcard'
+//   path: '/api/v2/**',
+//   such: 'wildcard'
 // }
 
 router.lookup('/api/v1/other-route/abcd');
 // returns {
-//     path: '/api/v1/other-route/:id',
-//     so: 'placeholder',
-//     much: 'wow'
-//     params: {
-//         id: 'abcd'
-//     }
+//   path: '/api/v1/other-route/:id',
+//   so: 'placeholder',
+//   much: 'wow'
+//   params: {
+//     id: 'abcd'
+//   }
 // }
 
 // remove route
 router.delete('/api/v2/**');
 
-// misses will return null
 router.lookup('/api/v2/anything/goes/here');
 // returns null
 
 route.startsWith('/api')
-// returns {
-//     '/api/v1/route': {
-//         much: 'data'
-//     },
-//     '/api/v1/other-route/:id': {
-//         so: 'placeholder',
-//         much: 'wow'
-//     }
-// }
+// returns [
+//   {
+//     path:'/api/v1/route',
+//     much: 'data'
+//   },
+//   {
+//     path: '/api/v1/other-route/:id',
+//     so: 'placeholder',
+//     much: 'wow'
+//   }
+// ]
 ```
