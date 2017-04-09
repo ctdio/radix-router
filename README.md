@@ -143,7 +143,7 @@ Output of `router.lookup('/api/v2/some/random/route')`:
 }
 ```
 
-Placeholders can be used in routes by starting a segment with a colon (`:`). Whatever
+Placeholders can be used in routes by starting a segment of the route with a colon `:`. Whatever
 content fills the position of the placeholder will be added to the lookup result
 under the `params` attribute.
 
