@@ -2,6 +2,7 @@
 /**
  * JS Radix Router implementation
  */
+var assert = require('assert')
 
 // node types
 var NORMAL_NODE = 0
@@ -476,9 +477,8 @@ function _getHandlers (action) {
 
 function _validateInput (input, strictPaths) {
   var path = input
-  if (typeof path !== 'string') {
-    throw new Error('Radix Tree input must be a string')
-  }
+  assert(path, '"path" must be provided')
+  assert(typeof path === 'string', '"path" must be that of a string')
 
   // allow for trailing slashes to match by removing it
   if (!strictPaths && path.length > 1 && path[path.length - 1] === '/') {
@@ -526,9 +526,17 @@ function Node (path, data, type) {
  * @constructor
  */
 function RadixRouter (options) {
-  this._rootNode = new Node()
-  this._strictMode = !!options && options.strict
-  // TODO: handle routes passed in via options
+  var self = this
+  self._rootNode = new Node()
+  self._strictMode = options && options.strict
+
+  // handle insertion of routes passed into constructor
+  var routes = options && options.routes
+  if (routes) {
+    routes.forEach(function (route) {
+      self.insert(route)
+    })
+  }
 }
 
 RadixRouter.prototype = {
@@ -590,12 +598,8 @@ RadixRouter.prototype = {
     var self = this
     var path = data.path
 
-    if (path) {
-      path = _validateInput(path, self._strictMode)
-      _startTraversal(self._rootNode, 'insert', path, data)
-    } else {
-      throw new Error('"path" must be specified an option')
-    }
+    path = _validateInput(path, self._strictMode)
+    _startTraversal(self._rootNode, 'insert', path, data)
   },
 
   /**

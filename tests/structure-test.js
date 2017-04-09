@@ -76,6 +76,53 @@ describe('Router tree structure', function () {
     expect(chootSlashChooSlashWildcardNode.type).to.equal(WILDCARD_TYPE)
   })
 
+  it('should throw an error if a path is not supplied when inserting a route', function () {
+    var router = new RadixRouter()
+    var insert = router.insert.bind(router, {
+      notAPath: 'this is not a path'
+    })
+
+    expect(insert).to.throw(/"path" must be provided/)
+  })
+
+  it('should be able to initialize routes via the router contructor', function () {
+    var router = new RadixRouter({
+      routes: [
+        { path: '/api/v1', value: 1 },
+        { path: '/api/v2', value: 2 },
+        { path: '/api/v3', value: 3 }
+      ]
+    })
+
+    var rootSlashNode = _getChild(router._rootNode, '/')
+    var apiNode = _getChild(rootSlashNode, 'api')
+    var apiSlashNode = _getChild(apiNode, '/')
+    var vNode = _getChild(apiSlashNode, 'v')
+    var v1Node = _getChild(vNode, '1')
+    var v2Node = _getChild(vNode, '2')
+    var v3Node = _getChild(vNode, '3')
+
+    expect(v1Node).to.exist
+    expect(v2Node).to.exist
+    expect(v3Node).to.exist
+    expect(v1Node.data.value).to.equal(1)
+    expect(v2Node.data.value).to.equal(2)
+    expect(v3Node.data.value).to.equal(3)
+  })
+
+  it('should throw an error if a path is not supplied when inserting a route via constructor', function () {
+    function createRouter () {
+      return new RadixRouter({
+        routes: [
+          { path: '/api/v1' },
+          { notAPath: '/api/v2' }
+        ]
+      })
+    }
+
+    expect(createRouter).to.throw(/"path" must be provided/)
+  })
+
   context('upon delete', function () {
     it('should merge childNodes left with no siblings with parent if parent contains no data', function () {
       var router = new RadixRouter()
