@@ -12,8 +12,8 @@ var PLACEHOLDER_NODE = 2
 /**
  * Returns all children that match the prefix
  *
- * @param {Node} - the node to check children for
- * @param {prefix} - the prefix to match
+ * @param { Node } - the node to check children for
+ * @param { prefix } - the prefix to match
  */
 function _getAllPrefixChildren (node, str) {
   var nodes = []
@@ -30,8 +30,8 @@ function _getAllPrefixChildren (node, str) {
 /**
  * Returns the child matching the prefix
  *
- * @param {Node} - the node to check children for
- * @param {prefix} - the prefix to match
+ * @param { Node } - the node to check children for
+ * @param { prefix } - the prefix to match
  */
 function _getChildNode (node, prefix) {
   var children = node.children
@@ -46,8 +46,8 @@ function _getChildNode (node, prefix) {
 /**
  * Retrieves the largest prefix of all children
  *
- * @param {object <string, Node>} children - a dictionary of childNodes
- * @param {string} str - the string used to find the largest prefix with
+ * @param { object <string, Node> } children - a dictionary of childNodes
+ * @param { string } str - the string used to find the largest prefix with
  */
 function _getLargestPrefix (children, str) {
   var index = 0
@@ -72,11 +72,11 @@ function _getLargestPrefix (children, str) {
 /**
  * Traverses the tree to find the node that the input string matches.
  *
- * @param {Node} node - the node to attempt to traverse
- * @param {string} str - the string used as the basis for traversal
- * @param {function} onExactMatch - the handler for exact matches
- * @param {function} onPartialMatch - the handler for partial matches
- * @param {function} onNoMatch - the handler for when no match is found
+ * @param { Node } node - the node to attempt to traverse
+ * @param { string } str - the string used as the basis for traversal
+ * @param { function } onExactMatch - the handler for exact matches
+ * @param { function } onPartialMatch - the handler for partial matches
+ * @param { function } onNoMatch - the handler for when no match is found
  */
 function _traverse (options) {
   var node = options.node
@@ -168,9 +168,9 @@ function _traverse (options) {
 /**
  * Traverses all child nodes places the full resulting path into a map
  *
- * @param {Node} node - the node to attempt to traverse
- * @param {string} str - the string that is the base of the key
- * @param {object} map - the map to traverse the cobrowse event with
+ * @param { Node } node - the node to attempt to traverse
+ * @param { string } str - the string that is the base of the key
+ * @param { object } map - the map to traverse the cobrowse event with
  */
 function _traverseDepths (node, str, array) {
   if (node.data) {
@@ -262,10 +262,10 @@ function _buildNodeChain (str, data) {
  * Splits a node in half, placing an intermediary node between the
  * parent node and the two resulting nodes from the split
  *
- * @param {Node} node - the node to split
- * @param {string} prefix - the largest prefix found
- * @param {string} str - the leftover parts of the input string
- * @param {object} data - the data to store in the new node
+ * @param { Node } node - the node to split
+ * @param { string } prefix - the largest prefix found
+ * @param { string } str - the leftover parts of the input string
+ * @param { object } data - the data to store in the new node
  */
 function _splitNode (node, prefix, str, data) {
   var originalNode
@@ -312,7 +312,7 @@ var EXACT_MATCH_HANDLERS = {
     childNode.data = data
     return node
   },
-  'delete': function (options) {
+  'remove': function (options) {
     var parentNode = options.node
     var prefix = options.prefix
     var result = options.data
@@ -324,7 +324,7 @@ var EXACT_MATCH_HANDLERS = {
     }
 
     if (childNode.children.length === 0) {
-      // delete node from parent
+      // remove node from parent
       for (var i = 0; i < parentNode.children.length; i++) {
         if (parentNode.children[i].path === prefix) {
           break
@@ -379,7 +379,7 @@ var PARTIAL_MATCH_HANDLERS = {
     var newNode = _splitNode(node, prefix, str, data)
     return newNode
   },
-  'delete': function () {
+  'remove': function () {
     return null
   },
   'lookup': function () {
@@ -403,7 +403,7 @@ var NO_MATCH_HANDLERS = {
     newNode.parent = parentNode
     return newNode
   },
-  'delete': function () {
+  'remove': function () {
     return null
   },
   'lookup': function () {
@@ -457,7 +457,7 @@ var PLACEHOLDER_HANDLERS = {
 
   // inserts shouldn't care about placeholders at all
   'insert': null,
-  'delete': _onPlaceholder,
+  'remove': _onPlaceholder,
   'startsWith': _onPlaceholder
 }
 
@@ -491,10 +491,10 @@ function _validateInput (input, strictPaths) {
 /**
  * Kicks off the traversal
  *
- * @param {Node} rootNode - the node to start from
- * @param {string} action - the action to perform, this will be used to get handlers
- * @param {string} input - the string to use for traversal
- * @param {object} data - the object to store in the Radix Tree
+ * @param { Node } rootNode - the node to start from
+ * @param { string } action - the action to perform, this will be used to get handlers
+ * @param { string } input - the string to use for traversal
+ * @param { object } data - the object to store in the Radix Tree
  */
 function _startTraversal (rootNode, action, input, data) {
   var handlers = _getHandlers(action)
@@ -603,17 +603,17 @@ RadixRouter.prototype = {
   },
 
   /**
-   * Perform a delete on the tree
+   * Perform a remove on the tree
    * @param { string } data.path - the route to match
    *
-   * @returns { boolean }  A boolean signifying if the delete was
+   * @returns { boolean }  A boolean signifying if the remove was
    * successful or not
    */
-  delete: function (input) {
+  remove: function (path) {
     var self = this
-    var path = _validateInput(input, self._strictMode)
+    path = _validateInput(path, self._strictMode)
     var result = { success: false }
-    _startTraversal(self._rootNode, 'delete', path, result)
+    _startTraversal(self._rootNode, 'remove', path, result)
     return result.success
   }
 }

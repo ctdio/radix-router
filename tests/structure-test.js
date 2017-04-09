@@ -123,7 +123,7 @@ describe('Router tree structure', function () {
     expect(createRouter).to.throw(/"path" must be provided/)
   })
 
-  context('upon delete', function () {
+  context('upon removal of route', function () {
     it('should merge childNodes left with no siblings with parent if parent contains no data', function () {
       var router = new RadixRouter()
       router.insert({ path: 'thisIsA' })
@@ -137,7 +137,7 @@ describe('Router tree structure', function () {
       expect(anotherRouteNode).to.exist
       expect(aboutToGetDeletedNode).to.exist
 
-      router.delete('thisIsAboutToGetDeleted')
+      router.remove('thisIsAboutToGetDeleted')
 
       var newBaseNode = _getChild(router._rootNode, 'thisIsAnotherRoute')
       expect(newBaseNode).to.exist
@@ -158,7 +158,7 @@ describe('Router tree structure', function () {
       expect(anotherRouteNode).to.exist
       expect(aboutToGetDeletedNode).to.exist
 
-      router.delete('thisIsAboutToGetDeleted')
+      router.remove('thisIsAboutToGetDeleted')
 
       var newBaseNode = _getChild(router._rootNode, 'thisIsAnotherRoute')
       expect(newBaseNode).to.not.exist
@@ -182,7 +182,7 @@ describe('Router tree structure', function () {
       expect(anotherRouteNode).to.exist
       expect(aboutToGetDeletedNode).to.exist
 
-      router.delete('thisIsA/boutToGetDeleted')
+      router.remove('thisIsA/boutToGetDeleted')
 
       var originalBaseNode = _getChild(router._rootNode, 'thisIsA')
       expect(originalBaseNode).to.exist
