@@ -123,6 +123,27 @@ describe('Router tree structure', function () {
     expect(createRouter).to.throw(/"path" must be provided/)
   })
 
+  it('should allow routes to be overwritten by performing another insert', function () {
+    var router = new RadixRouter({
+      routes: [
+        { path: '/api/v1', data: 1 }
+      ]
+    })
+
+    var apiRouteData = router.lookup('/api/v1')
+    expect(apiRouteData.data).to.equal(1)
+
+    router.insert({
+      path: '/api/v1',
+      data: 2,
+      anotherField: 3
+    })
+
+    apiRouteData = router.lookup('/api/v1')
+    expect(apiRouteData.data).to.equal(2)
+    expect(apiRouteData.anotherField).to.equal(3)
+  })
+
   context('upon removal of route', function () {
     it('should merge childNodes left with no siblings with parent if parent contains no data', function () {
       var router = new RadixRouter()
