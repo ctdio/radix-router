@@ -43,6 +43,10 @@ describe('Router lookup', function () {
         'element': 'test1'
       }
     })
+
+    expect(router.lookup('carbon')).to.deep.equal(null)
+    expect(router.lookup('carbon/')).to.deep.equal(null)
+
     expect(router.lookup('carbon/test1')).to.deep.equal({
       path: 'carbon/:element',
       data: 14,
