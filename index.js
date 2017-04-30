@@ -45,7 +45,7 @@ function Node (options) {
   this.type = options.type || NORMAL_NODE
 
   // if placeholder node
-  this.paramName = options.paramName
+  this.paramName = options.paramName || null
 
   this.parent = options.parent || null
   this.children = {}
@@ -54,6 +54,50 @@ function Node (options) {
   // keep track of special child nodes
   this.wildcardChildNode = null;
   this.placeholderChildNode = null;
+}
+
+function _findNode (path, rootNode) {
+  var chunks = path.split('/')
+
+  var hasParams = false
+
+  // optimization: pushing to an array is much faster than setting
+  // a value in an object, so store params as array
+  var params = []
+  var wildcardNode = null
+  var node = rootNode
+
+  for (var i = 0; i < chunks.length; i++) {
+    var chunk = chunks[i]
+    console.log('finding chunk', chunk)
+
+    if (node.wildcardChildNode !== null) {
+      wildcardNode = node.wildcardChildNode
+    }
+
+    // exact matches take precedence over placeholders
+    var nextNode = node.children[chunk]
+    if (nextNode !== undefined) {
+      node = nextNode
+    } else {
+      node = node.placeholderChildNode
+      if (node !== null) {
+        params.push(chunk)
+      } else {
+        break
+      }
+    }
+  }
+  console.log('wildCard', wildcardNode)
+
+  if ((node === null || node.data === null) && wildcardNode !== null) {
+    node = wildcardNode
+  }
+
+  return {
+    node: node,
+    params: params
+  }
 }
 
 /**
@@ -74,6 +118,7 @@ function RadixRouter (options) {
     })
   }
 }
+
 RadixRouter.prototype = {
   /**
    * Perform lookup of given path in radix tree
@@ -92,43 +137,17 @@ RadixRouter.prototype = {
       return staticPathNode.data
     }
 
-    var chunks = path.split('/')
+    var result = _findNode(path, self._rootNode)
+    var node = result.node
+    var params = result.params
 
-    var node = self._rootNode
+    var data = (node !== null && node.data) || null
 
-    var hasParams = false
-    var params = {}
-    var wildcardNode = null
-
-    for (var i = 0; i < chunks.length; i++) {
-      var chunk = chunks[i]
-
-      if (node.wildcardChildNode !== null) {
-        wildcardNode = node.wildcardChildNode
-      }
-
-      // exact matches take precedence over placeholders
-      var nextNode = node.children[chunk]
-      if (nextNode !== undefined) {
-        node = nextNode
-      } else if (node.placeholderChildNode !== null) {
-        hasParams = true
-        node = node.placeholderChildNode
-        params[node.paramName] = chunk
-      } else {
-        node = null
-        break
-      }
+    if (data !== null && result.params.length > 0) {
+      data.params = params
     }
 
-    var result = (node !== null && node.data) ||
-      (wildcardNode !== null && wildcardNode.data) || null
-
-    if (result !== null && hasParams === true) {
-      result.params = params
-    }
-
-    return result
+    return data
   },
 
   /**
@@ -140,22 +159,35 @@ RadixRouter.prototype = {
    */
   startsWith: function (prefix) {
     var self = this
-    _validateInput(prefix, self._strictMode)
-      /*
-    var result = _startTraversal(self._rootNode, 'startsWith', prefix)
+    prefix = _validateInput(prefix, self._strictMode)
 
+    var chunks = prefix.split('/')
+    var node = self._rootNode
     var resultArray = []
-    if (result instanceof Node) {
-      _traverseDepths(result, prefix, resultArray)
-    } else {
-      result.forEach(function (child) {
-        _traverseDepths(child,
-          prefix.substring(0, prefix.indexOf(child.path[0])) + child.path,
-          resultArray)
-      })
+
+    for (var i = 0; i < chunks.length; i++) {
+      var chunk = chunks[i]
+
+      if (node.data) {
+        resultArray.push(node.data)
+      }
+
+      var nextNode = node.children[chunk]
+
+      if (nextNode !== undefined) {
+        node = nextNode
+      } else if (i === chunks.length - 1) {
+        var childKeys = Object.keys(node.children)
+        for (var j = 0; j < childKeys.length; j++) {
+          var childKey = childKeys[i]
+          if (childKey.startsWith(chunk)) {
+            // get all keys
+          }
+        }
+      }
     }
+
     return resultArray
-    */
   },
 
   /**
@@ -212,7 +244,6 @@ RadixRouter.prototype = {
     // store whatever data was provided into the node
     node.data = data
 
-
     // optimization, if a route is static and does not have any
     // variable sections, we can store it into a map for faster
     // retrievals
@@ -233,9 +264,32 @@ RadixRouter.prototype = {
   remove: function (path) {
     var self = this
     path = _validateInput(path, self._strictMode)
-    var result = { success: false }
-    _startTraversal(self._rootNode, 'remove', path, result)
-    return result.success
+
+    var success = false
+    var chunks = path.split('/')
+    var node = self._rootNode
+
+    for (var i = 0; i < chunks.length; i++) {
+      var chunk = chunks[i]
+      node = node.children[chunk]
+      if (!node) {
+        break
+      }
+    }
+
+    if (node && node.data) {
+      var lastChunk = chunks[chunks.length - 1]
+      node.data = null
+      if (Object.keys(node.children).length === 0) {
+        var parentNode = node.parent
+        delete parentNode[lastChunk]
+        parentNode.wildcardChildNode = null
+        parentNode.placeholderChildNode = null
+      }
+      success = true
+    }
+
+    return success
   }
 }
 

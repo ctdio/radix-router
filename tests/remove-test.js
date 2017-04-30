@@ -36,9 +36,7 @@ describe('Router remove', function () {
 
     expect(router.lookup('placeholder/route')).to.deep.equal({
       path: 'placeholder/:choo',
-      params: {
-        choo: 'route'
-      },
+      params: [ 'route' ],
       data: 8
     })
 
@@ -47,10 +45,7 @@ describe('Router remove', function () {
 
     expect(router.lookup('placeholder/route/route2')).to.deep.equal({
       path: 'placeholder/:choo/:choo2',
-      params: {
-        choo: 'route',
-        choo2: 'route2'
-      },
+      params: [ 'route', 'route2' ],
       data: 8
     })
   })

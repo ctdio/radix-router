@@ -39,9 +39,7 @@ describe('Router lookup', function () {
     expect(router.lookup('carbon/test1')).to.deep.equal({
       path: 'carbon/:element',
       data: 14,
-      params: {
-        'element': 'test1'
-      }
+      params: [ 'test1' ]
     })
 
     expect(router.lookup('carbon')).to.deep.equal(null)
@@ -50,25 +48,19 @@ describe('Router lookup', function () {
     expect(router.lookup('carbon/test1')).to.deep.equal({
       path: 'carbon/:element',
       data: 14,
-      params: {
-        'element': 'test1'
-      }
+      params: [ 'test1' ]
     })
+
     expect(router.lookup('carbon/test2/test/test23')).to.deep.equal({
       path: 'carbon/:element/test/:testing',
       data: 15,
-      params: {
-        'element': 'test2',
-        'testing': 'test23'
-      }
+      params: [ 'test2', 'test23' ]
     })
+
     expect(router.lookup('this/test/has/more/stuff')).to.deep.equal({
       path: 'this/:route/has/:cool/stuff',
       data: 16,
-      params: {
-        route: 'test',
-        cool: 'more'
-      }
+      params: [ 'test', 'more' ]
     })
   })
 

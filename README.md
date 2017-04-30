@@ -3,8 +3,8 @@
 [![Build Status](https://travis-ci.org/charlieduong94/radix-router.svg?branch=master)](https://travis-ci.org/charlieduong94/radix-router)
 [![Coverage Status](https://coveralls.io/repos/github/charlieduong94/radix-router/badge.svg?branch=master)](https://coveralls.io/github/charlieduong94/radix-router?branch=master)
 
-A router implemented using a [Radix Tree](https://en.wikipedia.com/wiki/Radix_tree) (aka compact [Prefix Tree](https://en.wikipedia.com/wiki/Trie)).
-This router has support for placeholders and wildcards.
+A fast, simple path router that is optimized for consistently fast lookups. This router
+has support for placeholders and wildcards.
 
 ### Installation
 ```bash
@@ -145,13 +145,21 @@ Output of `router.lookup('/api/v2/some/random/route')`:
 
 Placeholders can be used in routes by starting a segment of the route with a colon `:`. Whatever
 content fills the position of the placeholder will be added to the lookup result
-under the `params` attribute.
+under the `params` attribute. The results within `params` is sorted by its occurrence
+in the route.
+
+Note: Route params are placed into an array as an optimization.
 
 Example:
 
 ```js
 router.insert(
   path: '/api/v2/:myPlaceholder/route',
+  very: 'placeholder'
+})
+
+router.insert(
+  path: '/api/v3/:organizations/directory/:groupId',
   very: 'placeholder'
 })
 ```
@@ -161,8 +169,15 @@ Output of `router.lookup('/api/v2/application/route')`:
 {
   path: '/api/v2/:myPlaceholder/route',
   very: 'placeholder',
-  params: {
-    myPlaceholder: 'application'
-  }
+  params: [ 'application' ]
+}
+```
+
+Output of `router.lookup('/api/v3/test-org/directory/test-group-id')`:
+```js
+{
+  path: '/api/v3/:organizations/directory/:groupId',
+  very: 'placeholder',
+  params: [ 'test-org', 'test-group-id' ]
 }
 ```
