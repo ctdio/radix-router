@@ -20,7 +20,8 @@ npm install --save radix-router
 Possible parameters for the `options` object:
 
 - `routes` - The routes to insert into the router.
-- `strict` - Setting this option to `true` will force lookups to match exact paths (trailing slashes will not be ignored). Defaults to `false`.
+- `strict` - Setting this option to `true` will force lookups to match exact paths
+(trailing slashes will not be ignored). Defaults to `false`.
 
 ```js
 const RadixRouter = require('radix-router')
@@ -148,7 +149,8 @@ content fills the position of the placeholder will be added to the lookup result
 under the `params` attribute. The results within `params` is sorted by its occurrence
 in the route.
 
-Note: Route params are placed into an array as an optimization.
+Note: Route placeholder params are placed into an array as an optimization. Your route handlers
+should be aware of the order placeholders are defined in the routes.
 
 Example:
 
