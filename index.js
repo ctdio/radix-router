@@ -147,7 +147,7 @@ RadixRouter.prototype = {
 
     var data = (node !== null && node.data) || null
 
-    if (data !== null && result.params.length > 0) {
+    if (data !== null && params.length > 0) {
       data.params = params
     }
 
