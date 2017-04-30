@@ -9,7 +9,6 @@ var NORMAL_NODE = 0
 var WILDCARD_NODE = 1
 var PLACEHOLDER_NODE = 2
 
-
 function _validateInput (path, strictPaths) {
   assert(path, '"path" must be provided')
   assert(typeof path === 'string', '"path" must be that of a string')
@@ -20,20 +19,6 @@ function _validateInput (path, strictPaths) {
   }
 
   return path
-}
-
-function _getNodeType (str) {
-  var type
-
-  if (str[0] === ':') {
-    type = PLACEHOLDER_NODE
-  } else if (str === '**'){
-    type = WILDCARD_NODE
-  } else {
-    type = NORMAL_NODE
-  }
-
-  return type
 }
 
 /**
@@ -52,14 +37,26 @@ function Node (options) {
   this.data = options.data || null
 
   // keep track of special child nodes
-  this.wildcardChildNode = null;
-  this.placeholderChildNode = null;
+  this.wildcardChildNode = null
+  this.placeholderChildNode = null
+}
+
+function _getNodeType (str) {
+  var type
+
+  if (str[0] === ':') {
+    type = PLACEHOLDER_NODE
+  } else if (str === '**') {
+    type = WILDCARD_NODE
+  } else {
+    type = NORMAL_NODE
+  }
+
+  return type
 }
 
 function _findNode (path, rootNode) {
-  var chunks = path.split('/')
-
-  var hasParams = false
+  var sections = path.split('/')
 
   // optimization: pushing to an array is much faster than setting
   // a value in an object, so store params as array
@@ -67,28 +64,26 @@ function _findNode (path, rootNode) {
   var wildcardNode = null
   var node = rootNode
 
-  for (var i = 0; i < chunks.length; i++) {
-    var chunk = chunks[i]
-    console.log('finding chunk', chunk)
+  for (var i = 0; i < sections.length; i++) {
+    var section = sections[i]
 
     if (node.wildcardChildNode !== null) {
       wildcardNode = node.wildcardChildNode
     }
 
     // exact matches take precedence over placeholders
-    var nextNode = node.children[chunk]
+    var nextNode = node.children[section]
     if (nextNode !== undefined) {
       node = nextNode
     } else {
       node = node.placeholderChildNode
       if (node !== null) {
-        params.push(chunk)
+        params.push(section)
       } else {
         break
       }
     }
   }
-  console.log('wildCard', wildcardNode)
 
   if ((node === null || node.data === null) && wildcardNode !== null) {
     node = wildcardNode
@@ -100,6 +95,15 @@ function _findNode (path, rootNode) {
   }
 }
 
+function _getAllNodesWithData (node, resultArray) {
+  var keys = Object.keys(node.children)
+
+  for (var i = 0; i < keys.length; i++) {
+    var nextNode = node.children[keys[i]]
+    _getAllNodesWithData(nextNode, resultArray)
+  }
+}
+
 /**
  * The Radix Router
  * @constructor
@@ -108,7 +112,7 @@ function RadixRouter (options) {
   var self = this
   self._rootNode = new Node()
   self._strictMode = options && options.strict
-  self._staticRoutes = {}
+  self._staticRoutesMap = {}
 
   // handle insertion of routes passed into constructor
   var routes = options && options.routes
@@ -133,7 +137,7 @@ RadixRouter.prototype = {
     // optimization, if a route is static and does not have any
     // variable sections, retrieve from a static routes map
     var staticPathNode
-    if (staticPathNode = self._staticRoutes[path]) {
+    if ((staticPathNode = self._staticRoutesMap[path])) {
       return staticPathNode.data
     }
 
@@ -161,27 +165,34 @@ RadixRouter.prototype = {
     var self = this
     prefix = _validateInput(prefix, self._strictMode)
 
-    var chunks = prefix.split('/')
+    var sections = prefix.split('/')
     var node = self._rootNode
     var resultArray = []
 
-    for (var i = 0; i < chunks.length; i++) {
-      var chunk = chunks[i]
+    for (var i = 0; i < sections.length; i++) {
+      var section = sections[i]
 
       if (node.data) {
         resultArray.push(node.data)
       }
 
-      var nextNode = node.children[chunk]
+      var nextNode = node.children[section]
 
       if (nextNode !== undefined) {
         node = nextNode
-      } else if (i === chunks.length - 1) {
-        var childKeys = Object.keys(node.children)
-        for (var j = 0; j < childKeys.length; j++) {
-          var childKey = childKeys[i]
-          if (childKey.startsWith(chunk)) {
-            // get all keys
+      } else if (i === sections.length - 1) {
+        var keys = Object.keys(node.children)
+
+        for (var j = 0; j < keys.length; j++) {
+          var key = keys[j]
+
+          if (key.startsWith(section)) {
+            nextNode = node.children[key]
+
+            if (nextNode.data) {
+              resultArray.push(nextNode.data)
+            }
+            _getAllNodesWithData(nextNode, resultArray)
           }
         }
       }
@@ -204,20 +215,20 @@ RadixRouter.prototype = {
 
     path = _validateInput(path, self._strictMode)
 
-    var chunks = path.split('/')
+    var sections = path.split('/')
 
     var node = self._rootNode
 
-    for (var i = 0; i < chunks.length; i++) {
-      var chunk = chunks[i]
+    for (var i = 0; i < sections.length; i++) {
+      var section = sections[i]
 
       var children = node.children
       var childNode
 
-      if (childNode = children[chunk]) {
+      if ((childNode = children[section])) {
         node = childNode
       } else {
-        var type = _getNodeType(chunk)
+        var type = _getNodeType(section)
 
         // create new node to represent the next
         // part of the path
@@ -226,10 +237,10 @@ RadixRouter.prototype = {
           parent: node
         })
 
-        node.children[chunk] = childNode
+        node.children[section] = childNode
 
         if (type === PLACEHOLDER_NODE) {
-          childNode.paramName = chunk.slice(1)
+          childNode.paramName = section.slice(1)
           node.placeholderChildNode = childNode
           isStaticRoute = false
         } else if (type === WILDCARD_NODE) {
@@ -248,7 +259,7 @@ RadixRouter.prototype = {
     // variable sections, we can store it into a map for faster
     // retrievals
     if (isStaticRoute === true) {
-      self._staticRoutes[path] = node
+      self._staticRoutesMap[path] = node
     }
 
     return node
@@ -266,23 +277,23 @@ RadixRouter.prototype = {
     path = _validateInput(path, self._strictMode)
 
     var success = false
-    var chunks = path.split('/')
+    var sections = path.split('/')
     var node = self._rootNode
 
-    for (var i = 0; i < chunks.length; i++) {
-      var chunk = chunks[i]
-      node = node.children[chunk]
+    for (var i = 0; i < sections.length; i++) {
+      var section = sections[i]
+      node = node.children[section]
       if (!node) {
         break
       }
     }
 
     if (node && node.data) {
-      var lastChunk = chunks[chunks.length - 1]
+      var lastSection = sections[sections.length - 1]
       node.data = null
       if (Object.keys(node.children).length === 0) {
         var parentNode = node.parent
-        delete parentNode[lastChunk]
+        delete parentNode[lastSection]
         parentNode.wildcardChildNode = null
         parentNode.placeholderChildNode = null
       }
