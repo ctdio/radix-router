@@ -1,5 +1,7 @@
 # Radix Router
 
+[![Greenkeeper badge](https://badges.greenkeeper.io/charlieduong94/radix-router.svg)](https://greenkeeper.io/)
+
 [![Build Status](https://travis-ci.org/charlieduong94/radix-router.svg?branch=master)](https://travis-ci.org/charlieduong94/radix-router)
 [![Coverage Status](https://coveralls.io/repos/github/charlieduong94/radix-router/badge.svg?branch=master)](https://coveralls.io/github/charlieduong94/radix-router?branch=master)
 
