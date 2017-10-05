@@ -1,6 +1,23 @@
 {
+  "name": "radix-router",
+  "version": "2.0.0",
+  "description": "Radix tree based router",
+  "main": "index.js",
+  "repository": {
+    "url": "https://github.com/charlieduong94/radix-router",
+    "type": "git"
+  },
+  "author": "Charlie Duong <charlieduong94@gmail.com>",
+  "license": "MIT",
+  "scripts": {
+    "pretest": "eslint .",
+    "test": "./run-tests.sh",
+    "test-coverage": "istanbul cover _mocha --include-all-sources -- --ui bdd --reporter spec ./tests",
+    "coveralls": "cat ./coverage/lcov.info | coveralls",
+    "lint": "eslint ."
+  },
   "devDependencies": {
-    "benchmark": "^2.1.2",
+    "benchmark": "^2.1.4",
     "chai": "^4.0.1",
     "coveralls": "^2.11.14",
     "eslint": "^4.1.0",
@@ -13,24 +30,6 @@
     "istanbul": "^0.4.5",
     "jscs": "^3.0.7",
     "jshint": "^2.9.4",
-    "mocha": "^3.1.2",
-    "path-based-router": "^1.1.3",
-    "radix-tree": "^0.3.4"
-  },
-  "name": "radix-router",
-  "version": "2.0.0",
-  "description": "Radix tree based router",
-  "main": "index.js",
-  "repository": {
-    "url": "https://github.com/charlieduong94/radix-router",
-    "type": "git"
-  },
-  "author": "Charlie Duong <charlieduong94@gmail.com>",
-  "license": "MIT",
-  "scripts": {
-    "test": "./run-tests.sh",
-    "test-coverage": "istanbul cover _mocha --include-all-sources -- --ui bdd --reporter spec ./tests",
-    "coveralls": "cat ./coverage/lcov.info | coveralls",
-    "lint": "eslint ."
+    "mocha": "^3.1.2"
   }
 }

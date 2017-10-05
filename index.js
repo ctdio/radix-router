@@ -59,9 +59,8 @@ function _getNodeType (str) {
 function _findNode (path, rootNode) {
   var sections = path.split('/')
 
-  // optimization: pushing to an array is much faster than setting
-  // a value in an object, so store params as array
-  var params = []
+  var params = {}
+  var paramsFound = false
   var wildcardNode = null
   var node = rootNode
 
@@ -79,7 +78,8 @@ function _findNode (path, rootNode) {
     } else {
       node = node.placeholderChildNode
       if (node !== null) {
-        params.push(section)
+        params[node.paramName] = section
+        paramsFound = true
       } else {
         break
       }
@@ -92,7 +92,7 @@ function _findNode (path, rootNode) {
 
   return {
     node: node,
-    params: params
+    params: paramsFound ? params : undefined
   }
 }
 
@@ -148,7 +148,7 @@ RadixRouter.prototype = {
 
     var data = (node !== null && node.data) || null
 
-    if (data !== null && params.length > 0) {
+    if (data !== null && params !== undefined) {
       data.params = params
     }
 
