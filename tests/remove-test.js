@@ -65,7 +65,7 @@ describe('Router remove', function () {
     })
   })
 
-  it('should return an result signifying that the remove operation was successful or not', function () {
+  it('should return a result signifying that the remove operation was successful or not', function () {
     var router = new RadixRouter()
     _putRoute(router, '/some/route', 1)
 
