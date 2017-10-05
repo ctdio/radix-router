@@ -173,7 +173,9 @@ Output of `router.lookup('/api/v2/application/route')`:
 {
   path: '/api/v2/:myPlaceholder/route',
   very: 'placeholder',
-  params: [ 'application' ]
+  params: {
+    myPlaceholder: 'application'
+  }
 }
 ```
 
@@ -182,6 +184,9 @@ Output of `router.lookup('/api/v3/test-org/directory/test-group-id')`:
 {
   path: '/api/v3/:organizations/directory/:groupId',
   very: 'placeholder',
-  params: [ 'test-org', 'test-group-id' ]
+  params: {
+    organizations: 'test-org',
+    groupId: 'test-group-id'
+  }
 }
 ```

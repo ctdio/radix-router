@@ -11,7 +11,7 @@
   "license": "MIT",
   "scripts": {
     "pretest": "eslint .",
-    "test": "./run-tests.sh",
+    "test": "mocha test",
     "test-coverage": "istanbul cover _mocha --include-all-sources -- --ui bdd --reporter spec ./tests",
     "coveralls": "cat ./coverage/lcov.info | coveralls",
     "lint": "eslint ."
