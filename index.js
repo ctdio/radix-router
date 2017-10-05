@@ -13,9 +13,10 @@ function _validateInput (path, strictPaths) {
   assert(path, '"path" must be provided')
   assert(typeof path === 'string', '"path" must be that of a string')
 
+  var pathEnd
   // allow for trailing slashes to match by removing it
-  if (!strictPaths && path.length > 1 && path[path.length - 1] === '/') {
-    path = path.slice(0, path.length - 1)
+  if (!strictPaths && path.length > 1 && path[(pathEnd = path.length - 1)] === '/') {
+    path = path.slice(0, pathEnd)
   }
 
   return path
@@ -168,6 +169,7 @@ RadixRouter.prototype = {
     var sections = prefix.split('/')
     var node = self._rootNode
     var resultArray = []
+    var endSections = sections.length - 1
 
     for (var i = 0; i < sections.length; i++) {
       var section = sections[i]
@@ -180,7 +182,7 @@ RadixRouter.prototype = {
 
       if (nextNode !== undefined) {
         node = nextNode
-      } else if (i === sections.length - 1) {
+      } else if (i === endSections) {
         var keys = Object.keys(node.children)
 
         for (var j = 0; j < keys.length; j++) {
@@ -284,11 +286,11 @@ RadixRouter.prototype = {
       var section = sections[i]
       node = node.children[section]
       if (!node) {
-        break
+        return success
       }
     }
 
-    if (node && node.data) {
+    if (node.data) {
       var lastSection = sections[sections.length - 1]
       node.data = null
       if (Object.keys(node.children).length === 0) {
