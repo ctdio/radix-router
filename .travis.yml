@@ -4,5 +4,5 @@ node_js:
     - "6.9.1"
     - "5.0.0"
     - "4.4.4"
-script: "npm run test-coverage"
-after_success: "npm run coveralls"
+script: "npm test"
+after_success: "npm run coverage"
