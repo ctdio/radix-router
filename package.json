@@ -10,10 +10,9 @@
   "author": "Charlie Duong <charlieduong94@gmail.com>",
   "license": "MIT",
   "scripts": {
-    "pretest": "eslint .",
-    "test": "mocha test",
-    "test-coverage": "istanbul cover _mocha --include-all-sources -- --ui bdd --reporter spec ./test",
-    "coveralls": "cat ./coverage/lcov.info | coveralls",
+    "pretest": "npm run lint",
+    "test": "nyc mocha test",
+    "coverage": "nyc report --reporter=text-lcov | coveralls",
     "lint": "eslint ."
   },
   "devDependencies": {
@@ -30,6 +29,7 @@
     "istanbul": "^0.4.5",
     "jscs": "^3.0.7",
     "jshint": "^2.9.4",
-    "mocha": "^3.1.2"
+    "mocha": "^3.1.2",
+    "nyc": "^11.2.1"
   }
 }
