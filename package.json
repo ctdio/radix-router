@@ -1,6 +1,6 @@
 {
   "name": "radix-router",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "description": "Radix tree based router",
   "main": "index.js",
   "repository": {
