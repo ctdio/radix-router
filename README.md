@@ -15,6 +15,24 @@ npm install --save radix-router
 
 ### Usage
 
+A minimal example:
+
+```js
+const RadixRouter = require('radix-router')
+
+const router = new Router()
+router.insert({
+  path: '/api/people/:id',
+  data: { some: 'data' }
+})
+
+const { data, params } = router.lookup('/api/people/123456')
+
+const { id } = params
+console.log(id) // prints: '123456'
+console.log(data) // prints: { some: 'data' }
+```
+
 #### Creating a new Router
 
 `new RadixRouter(options)` - Creates a new instance of a router. The `options` object is optional.
@@ -148,23 +166,18 @@ Output of `router.lookup('/api/v2/some/random/route')`:
 
 Placeholders can be used in routes by starting a segment of the route with a colon `:`. Whatever
 content fills the position of the placeholder will be added to the lookup result
-under the `params` attribute. The results within `params` is sorted by its occurrence
-in the route.
-
-Note: Route placeholder params are placed into an array as an optimization. Your route handlers
-should be aware of the order placeholders are defined in the routes.
+under the `params` attribute. The name given for the placeholder in the path is the key to
+retrieve the parameter from.
 
 Example:
 
 ```js
 router.insert(
-  path: '/api/v2/:myPlaceholder/route',
-  very: 'placeholder'
+  path: '/api/v2/:myPlaceholder/route'
 })
 
 router.insert(
-  path: '/api/v3/:organizations/directory/:groupId',
-  very: 'placeholder'
+  path: '/api/v3/:organizations/directory/:groupId'
 })
 ```
 
@@ -172,7 +185,6 @@ Output of `router.lookup('/api/v2/application/route')`:
 ```js
 {
   path: '/api/v2/:myPlaceholder/route',
-  very: 'placeholder',
   params: {
     myPlaceholder: 'application'
   }
@@ -183,7 +195,6 @@ Output of `router.lookup('/api/v3/test-org/directory/test-group-id')`:
 ```js
 {
   path: '/api/v3/:organizations/directory/:groupId',
-  very: 'placeholder',
   params: {
     organizations: 'test-org',
     groupId: 'test-group-id'
