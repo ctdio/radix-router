@@ -1,10 +1,10 @@
-var expect = require('chai').expect
-var RadixRouter = require('../index')
-var _putRoute = require('./util/putRoute')
+const expect = require('chai').expect
+const RadixRouter = require('../index')
+const _putRoute = require('./util/putRoute')
 
-describe('Router remove', function () {
-  it('should be able to remove nodes', function () {
-    var router = new RadixRouter()
+describe('Router remove', function() {
+  it('should be able to remove nodes', function() {
+    const router = new RadixRouter()
     _putRoute(router, 'hello', 1)
     _putRoute(router, 'cool', 2)
     _putRoute(router, 'hi', 3)
@@ -29,8 +29,8 @@ describe('Router remove', function () {
     })
   })
 
-  it('should be able to remove placeholder routes', function () {
-    var router = new RadixRouter()
+  it('should be able to remove placeholder routes', function() {
+    const router = new RadixRouter()
     _putRoute(router, 'placeholder/:choo', 8)
     _putRoute(router, 'placeholder/:choo/:choo2', 8)
 
@@ -55,8 +55,8 @@ describe('Router remove', function () {
     })
   })
 
-  it('should be able to remove wildcard routes', function () {
-    var router = new RadixRouter()
+  it('should be able to remove wildcard routes', function() {
+    const router = new RadixRouter()
     _putRoute(router, 'ui/**', 9)
     _putRoute(router, 'ui/components/**', 10)
     expect(router.lookup('ui/components/snackbars')).to.deep.equal({
@@ -70,11 +70,11 @@ describe('Router remove', function () {
     })
   })
 
-  it('should return a result signifying that the remove operation was successful or not', function () {
-    var router = new RadixRouter()
+  it('should return a result signifying that the remove operation was successful or not', function() {
+    const router = new RadixRouter()
     _putRoute(router, '/some/route', 1)
 
-    var removeResult = router.remove('/some/route')
+    let removeResult = router.remove('/some/route')
     expect(removeResult).to.equal(true)
 
     // route should no longer exist
