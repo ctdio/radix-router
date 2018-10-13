@@ -1,10 +1,10 @@
-var expect = require('chai').expect
-var RadixRouter = require('../index')
-var _putRoute = require('./util/putRoute')
+const expect = require('chai').expect
+const RadixRouter = require('../index')
+const _putRoute = require('./util/putRoute')
 
-describe('Router lookup', function () {
-  it('should be able lookup static routes', function () {
-    var router = new RadixRouter()
+describe('Router lookup', function() {
+  it('should be able lookup static routes', function() {
+    const router = new RadixRouter()
 
     _putRoute(router, '/', true)
     _putRoute(router, '/route', true)
@@ -30,8 +30,8 @@ describe('Router lookup', function () {
     })
   })
 
-  it('should be able to retrieve placeholders', function () {
-    var router = new RadixRouter()
+  it('should be able to retrieve placeholders', function() {
+    const router = new RadixRouter()
     _putRoute(router, 'carbon/:element', 14)
     _putRoute(router, 'carbon/:element/test/:testing', 15)
     _putRoute(router, 'this/:route/has/:cool/stuff', 16)
@@ -66,8 +66,8 @@ describe('Router lookup', function () {
     })
   })
 
-  it('should be able to perform wildcard lookups', function () {
-    var router = new RadixRouter()
+  it('should be able to perform wildcard lookups', function() {
+    const router = new RadixRouter()
 
     _putRoute(router, 'polymer/**', 12)
     _putRoute(router, 'polymer/another/route', 13)
@@ -88,8 +88,8 @@ describe('Router lookup', function () {
     })
   })
 
-  it('should be able to match routes with trailing slash', function () {
-    var router = new RadixRouter()
+  it('should be able to match routes with trailing slash', function() {
+    const router = new RadixRouter()
 
     _putRoute(router, 'route/without/trailing/slash', true)
     _putRoute(router, 'route/with/trailing/slash/', true)
@@ -115,8 +115,8 @@ describe('Router lookup', function () {
     })
   })
 
-  it('should not match routes with trailing slash if router is created with strict mode', function () {
-    var router = new RadixRouter({
+  it('should not match routes with trailing slash if router is created with strict mode', function() {
+    const router = new RadixRouter({
       strict: true
     })
 
