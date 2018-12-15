@@ -3,6 +3,7 @@
   "version": "3.0.1",
   "description": "Radix tree based router",
   "main": "index.js",
+  "types": "index.d.ts",
   "repository": {
     "url": "https://github.com/charlieduong94/radix-router",
     "type": "git"
